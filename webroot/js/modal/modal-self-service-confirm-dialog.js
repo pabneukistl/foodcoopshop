@@ -24,7 +24,11 @@ foodcoopshop.ModalSelfServiceConfirmDialog = {
         }
 
         for(var i=0;i<dialogbuttons.length;i++) {
-           buttons[i] = [foodcoopshop.Modal.createButton([dialogbuttons[i].classes], dialogbuttons[i].title, dialogbuttons[i].faIcon, dialogbuttons[i].isCloseButton, [dialogbuttons[i].value])];
+           var buttonHtml = foodcoopshop.Modal.createButton([dialogbuttons[i].classes], dialogbuttons[i].title, dialogbuttons[i].faIcon, dialogbuttons[i].isCloseButton, [dialogbuttons[i].value]);
+           if (dialogbuttons[i].payment_type_id) {
+               buttonHtml = $(buttonHtml).attr('data-payment-type-id', dialogbuttons[i].payment_type_id)[0].outerHTML;
+           }
+           buttons[i] = [buttonHtml];
         }
 
         foodcoopshop.Modal.appendModalToDom(
@@ -43,7 +47,9 @@ foodcoopshop.ModalSelfServiceConfirmDialog = {
         });
 
         $(modalSelector + ' button.btn-success.no-auto-bind').on('click', function () {
-            foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.getOpenHandler('#self-service-confirm-dialog-paymenttype-details', $(this).text(), $(this).attr('value'));
+            var isSumUp = $(this).hasClass('btn-sumup');
+            var paymentTypeId = $(this).attr('data-payment-type-id');
+            foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.getOpenHandler('#self-service-confirm-dialog-paymenttype-details', $(this).text(), $(this).attr('value'), isSumUp, paymentTypeId);
         });
 
         $(modalSelector + ' button.btn-outline-light').on('click', function () {

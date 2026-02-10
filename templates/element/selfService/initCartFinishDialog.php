@@ -45,7 +45,8 @@ if (empty($selfServicePaymentTypes) || !$identity->isSelfServiceCustomer()) {
             'title' => $selfServicePaymentType['payment_type'],
             'faIcon' => 'fa-fw fas fa-check',
             'isCloseButton' => true,
-            'value' => $selfServicePaymentType['payment_text']
+            'value' => $selfServicePaymentType['payment_text'],
+            'payment_type_id' => (isset($selfServicePaymentType['is_sumup']) && $selfServicePaymentType['is_sumup']) ? \App\Model\Entity\Cart::SELF_SERVICE_PAYMENT_TYPE_SUMUP : \App\Model\Entity\Cart::SELF_SERVICE_PAYMENT_TYPE_CASH
         ];
     }
 }

@@ -50,4 +50,8 @@ if (!Configure::read('app.selfServiceEasyModeEnabled')) {
 if ($paymentTypeAsString != '') {
     echo '<p class="payment-type">' .  __('Payment_type') . ': ' . $paymentTypeAsString . '</p>';
 }
+
+if (Configure::read('app.selfServiceEasyModeEnabled')) {
+    echo $this->Form->control('self_service_payment_type', ['type' => 'hidden', 'value' => '']);
+}
 ?>

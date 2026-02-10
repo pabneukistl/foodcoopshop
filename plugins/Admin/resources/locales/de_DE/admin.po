@@ -2559,3 +2559,11 @@ msgstr "Keine kopierbaren Produkte gefunden."
 
 msgid "Extra billing"
 msgstr "Sonderabrechnung"
+msgid "Card_payment"
+msgstr "Kartenzahlung"
+
+msgid "Tax_overview_card"
+msgstr "Steuer-Übersicht Kartenzahlung"
+
+msgid "Paid_with_card_on_{0}."
+msgstr "Mit Karte bezahlt am {0}."

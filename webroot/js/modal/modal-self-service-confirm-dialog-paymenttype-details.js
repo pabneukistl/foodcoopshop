@@ -13,12 +13,29 @@
  */
 foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog = {
 
+    isSumUp: false,
+
+    paymentTypeId: null,
+
+    pollCount: 0,
+
+    maxPollCount: 150, // approx 5 minutes
+
     getSuccessHandler : function() {
-       var selfSForm = $('#SelfServiceForm');
-       selfSForm.submit();
+        if (this.paymentTypeId) {
+            $('#self-service-payment-type').val(this.paymentTypeId);
+        }
+        if (this.isSumUp) {
+            this.handleSumUpPayment();
+        } else {
+            var selfSForm = $('#SelfServiceForm');
+            selfSForm.submit();
+        }
     },
 
-    getOpenHandler : function(modalSelector, paymentName, paymentText) {
+    getOpenHandler : function(modalSelector, paymentName, paymentText, isSumUp, paymentTypeId) {
+        this.isSumUp = isSumUp;
+        this.paymentTypeId = paymentTypeId;
         var modalSelector = '#self-service-confirm-dialog-paymenttype-details';
         var buttons = [
             foodcoopshop.Modal.createButton(['btn-success'], foodcoopshop.LocalizedJs.cart.selfServiceConfirmPurchaseCompletedButton, 'fa-fw fas fa-check'),
@@ -34,7 +51,7 @@ foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog = {
 
         var amount = $('p.total-sum-wrapper > span.sum').html();
         $(modalSelector + ' .modal-title').text(paymentName);
-        $(modalSelector + ' .modal-body').html('<p>' + foodcoopshop.LocalizedJs.cart.selfServiceAmountToBePaid + '<b>' + amount + '</b>' + paymentText + '</p>');
+        $(modalSelector + ' .modal-body').html('<p>' + foodcoopshop.LocalizedJs.cart.selfServiceAmountToBePaid + ': <b>' + amount + '</b><br /><br />' + paymentText + '</p>');
 
         foodcoopshop.Modal.bindSuccessButton(modalSelector, function() {
             foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.getSuccessHandler();
@@ -48,6 +65,77 @@ foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog = {
         }); 
 
         new bootstrap.Modal(document.getElementById(modalSelector.replace(/#/, ''))).show();
+    },
+
+    handleSumUpPayment: function() {
+        var modalSelector = '#self-service-confirm-dialog-paymenttype-details';
+        this.pollCount = 0;
+
+        var successButton = foodcoopshop.Modal.getSuccessButton(modalSelector);
+
+        $(modalSelector + ' .modal-body').append('<p class="sumup-status">' + foodcoopshop.LocalizedJs.cart.selfServiceSumUpWaitingForPayment + ' <i class="fas fa-circle-notch fa-spin"></i></p>');
+        foodcoopshop.Helper.disableButton($(modalSelector + ' .btn-outline-light'));
+
+        foodcoopshop.Helper.ajaxCall(
+            '/' + foodcoopshop.LocalizedJs.helper.routeSelfService + '/sumUpCreateCheckout',
+            {},
+            {
+                onOk: function (data) {
+                    if (data.id) {
+                        foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.pollSumUpStatus(data.id);
+                    } else {
+                        foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.handleSumUpError(data.message || 'Error creating checkout');
+                    }
+                },
+                onError: function (data) {
+                    foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.handleSumUpError(data.msg);
+                }
+            }
+        );
+    },
+
+    pollSumUpStatus: function(checkoutId) {
+        var modalSelector = '#self-service-confirm-dialog-paymenttype-details';
+        this.pollCount++;
+
+        if (this.pollCount > this.maxPollCount) {
+            this.handleSumUpError('Timeout waiting for payment');
+            return;
+        }
+
+        setTimeout(function() {
+            foodcoopshop.Helper.ajaxCall(
+                '/' + foodcoopshop.LocalizedJs.helper.routeSelfService + '/sumUpGetCheckoutStatus?id=' + checkoutId,
+                {},
+                {
+                    method: 'GET',
+                    onOk: function (data) {
+                        if (data.status === 'PAID') {
+                            $(modalSelector + ' .sumup-status').html(foodcoopshop.LocalizedJs.cart.selfServiceSumUpPaymentSuccessful);
+                            var selfSForm = $('#SelfServiceForm');
+                            selfSForm.submit();
+                        } else if (data.status === 'FAILED' || data.status === 'CANCELLED' || data.status === 'ERROR') {
+                             foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.handleSumUpError(data.status + (data.message ? ': ' + data.message : ''));
+                        } else {
+                            foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.pollSumUpStatus(checkoutId);
+                        }
+                    },
+                    onError: function (data) {
+                         foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.handleSumUpError(data.msg);
+                    }
+                }
+            );
+        }, 2000);
+    },
+
+    handleSumUpError: function(message) {
+        var modalSelector = '#self-service-confirm-dialog-paymenttype-details';
+        $(modalSelector + ' .sumup-status').remove();
+        foodcoopshop.Helper.showErrorMessage(message);
+        var successButton = foodcoopshop.Modal.getSuccessButton(modalSelector);
+        foodcoopshop.Helper.removeSpinnerFromButton(successButton, 'fa-check');
+        foodcoopshop.Helper.enableButton(successButton);
+        foodcoopshop.Helper.enableButton($(modalSelector + ' .btn-outline-light'));
     },
 
     getCloseHandler : function(modalSelector) {

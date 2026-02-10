@@ -2481,3 +2481,12 @@ msgstr "The delivered weight will eventually be adapted, so the price can change
 
 msgid "Product_ID"
 msgstr "ProductID"
+
+msgid "Card_payment"
+msgstr "Card payment"
+
+msgid "Tax_overview_card"
+msgstr "Tax overview card payment"
+
+msgid "Paid_with_card_on_{0}."
+msgstr "Paid with card on {0}."

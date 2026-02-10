@@ -85,6 +85,10 @@ if ($isOverviewMode && !empty($invoices)) {
         echo $this->element('invoice/taxSumTable', ['taxRates' => $taxRates['cash'], 'taxRatesSums' => $taxRatesSums['cash']]);
     }
 
+    if (!empty($taxRates['card'])) {
+        echo '<h4>' . __d('admin', 'Tax_overview_card') . '</h4>';
+        echo $this->element('invoice/taxSumTable', ['taxRates' => $taxRates['card'], 'taxRatesSums' => $taxRatesSums['card']]);
+    }
 
     if (!empty($taxRates['cashless'])) {
         echo '<h4>' . __d('admin', 'Tax_overview_cashless') . '</h4>';
@@ -174,7 +178,17 @@ $this->Paginator->setPaginated($invoices);
             echo '</td>';
 
             echo '<td>';
-                echo $invoice->paid_in_cash_boolean ? __d('admin', 'yes') : __d('admin', 'no');
+                switch($invoice->paid_in_cash) {
+                    case \App\Model\Entity\Invoice::PAID_IN_CASH_CASH:
+                        echo __d('admin', 'Paid_in_cash');
+                        break;
+                    case \App\Model\Entity\Invoice::PAID_IN_CASH_CARD:
+                        echo __d('admin', 'Card_payment');
+                        break;
+                    default:
+                        echo __d('admin', 'Credit');
+                        break;
+                }
             echo '</td>';
 
             echo '<td style="text-align:center;">';
