@@ -79,6 +79,14 @@ return function (RouteBuilder $routes) {
 
         // first folder must not exist physically!
         $routes->connect('/photos/profile-images/customers/{imageSrc}', ['controller' => 'Customers', 'action' => 'profileImage']);
+        $routes->connect(
+            '/self-service/check-barcode-type',
+           ['controller' => 'SelfService', 'action' => 'checkBarcodeType']
+        );
+        $routes->connect(
+            '/selbstbedienung/check-barcode-type',
+            ['controller' => 'SelfService', 'action' => 'checkBarcodeType']
+        );
 
         $routes->fallbacks();
     });

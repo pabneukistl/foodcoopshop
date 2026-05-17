@@ -28,6 +28,7 @@ class RequestPolicy implements RequestPolicyInterface
     {
         $plugin = $request->getParam('plugin');
         $controller = $request->getParam('controller');
+        $action = $request->getParam('action');
 
         $policy = 'App\\Policy\\' . $controller . 'Policy';
 
@@ -41,6 +42,10 @@ class RequestPolicy implements RequestPolicyInterface
 
         if ($plugin == 'Network') {
             $policy = 'Network\\Policy\\' . $controller . 'Policy';
+        }
+
+        if ($controller === 'SelfService' && $action === 'checkBarcodeType') {
+            return true;
         }
 
         // handle special case /request (bots) => 404

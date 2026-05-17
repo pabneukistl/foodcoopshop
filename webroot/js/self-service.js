@@ -15,11 +15,15 @@ foodcoopshop.SelfService = {
 
     autoLogoutTimer : 180,
     currentLogoutTimer : 0,
+    defaultStartUrl: null,
+    useDefaultStart: false,
 
     init : function() {
         foodcoopshop.ModalLogout.init(document.location.href);
         foodcoopshop.ColorMode.init();
         this.initWindowResize();
+        this.detectDefaultStart();
+        this.initDefaultStartUI();
         this.initSearchForm();
         this.bindQuantityInUnitsInputFields();
         this.initDepositPayment();
@@ -110,6 +114,22 @@ foodcoopshop.SelfService = {
     initLoginForm : function() {
 
         var barcodeInputField = $('#barcode');
+        barcodeInputField.on('keydown', function(e) {
+            if (e.keyCode === 13) {
+                var barcode = $(this).val() ? String($(this).val()).trim() : '';
+                var email = $('#email').length ? String($('#email').val()).trim() : '';
+                var password = $('#password').length ? String($('#password').val()).trim() : '';
+
+                if (barcode !== '' && email === '' && password === '') {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    foodcoopshop.SelfService.checkBarcodeBeforeLogin(barcode);
+                    return false;
+                }
+            }
+        });
+
         barcodeInputField.on('keyup focus', function (e) {
             $(this).prop('type', 'password'); // to avoid autocomplete
         });
@@ -117,24 +137,71 @@ foodcoopshop.SelfService = {
         var loginForm = $('#LoginForm');
         var formIsSubmitted = false;
         loginForm.on('submit', function(e) {
-            if (formIsSubmitted) {
+            var barcode = $('#barcode').val() ? String($('#barcode').val()).trim() : '';
+            var email = $('#email').length ? String($('#email').val()).trim() : '';
+            var password = $('#password').length ? String($('#password').val()).trim() : '';
+
+            if (barcode !== '' && email === '' && password === '') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
                 return false;
             }
+
+            if (formIsSubmitted) { return false; }
             formIsSubmitted = true;
+            return true;
         });
+
         barcodeInputField.focus();
 
         var cameraButton = $('<a/>').
-            addClass('btn').
-            addClass('btn-camera').
-            addClass('btn-success').
+            addClass('btn'). addClass('btn-camera'). addClass('btn-success').
             attr('href', 'javascript:void(0);').
             html('<i class="fas fa-camera fa-2x"></i>').
             on('click', function() {
                 foodcoopshop.SelfService.initMobileBarcodeScanningWithCamera('.btn-camera', '#login-form h1', foodcoopshop.SelfService.mobileScannerCallbackForLogin);
             });
         $('#responsive-header .sb-toggle-left').after(cameraButton);
+        this.detectDefaultStart();
+        this.initDefaultStartUI();
+    },
 
+    checkBarcodeBeforeLogin: function(barcode) {
+        $.ajax({
+            url: '/' + __('route_self_service') + '/check-barcode-type',
+            type: 'GET',
+            data: { barcode: barcode },
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                if (response && response.type === 'customer') {
+                    try { sessionStorage.removeItem('selfServiceInitialKeyword'); } catch (err) {}
+                    try { sessionStorage.setItem('clearCustomerBarcode', barcode); } catch (err) {}
+                
+                    var form = $('#LoginForm');
+                    form[0].submit();
+                } else {
+                    var startUrl = null;
+                    try { startUrl = localStorage.getItem('fcs_self_service_start_url'); } catch (err) {}
+
+                    if (startUrl) {
+                        try { sessionStorage.setItem('selfServiceInitialKeyword', barcode); } catch (err) {}
+                        window.location.href = startUrl;
+                    } else {
+                        foodcoopshop.Helper.showErrorMessage('Bitte wähle zuerst einen Standort aus, bevor du ein Produkt scannst.');
+                        foodcoopshop.SelfService.playErrorSound();
+                        $('#barcode').val('');
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("=== BARCODE-API FEHLERSUCHE ===");
+                console.error("Status:", status);
+                console.error("Server-Antwort:", xhr.responseText);
+                foodcoopshop.Helper.showErrorMessage('Barcode-Prüfung fehlgeschlagen. Bitte prüfe die F12-Konsole.');
+                $('#barcode').val('');
+            }
+        });
     },
 
     initDepositPayment : function() {
@@ -163,7 +230,33 @@ foodcoopshop.SelfService = {
 
             var inputField = searchForm.find('input[type="text"]');
             if (inputField.length > 0) {
+                try {
+                    var clearBarcode = sessionStorage.getItem('clearCustomerBarcode');
+                    if (clearBarcode && inputField.val() === clearBarcode) {
+                        inputField.val(''); // Suchfeld leeren
+                        sessionStorage.removeItem('clearCustomerBarcode');
+                    
+                        if (window.history && window.history.replaceState) {
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    }
+                } catch (e) {}
+
                 var length = inputField.val().length;
+                try {
+                    var deferredKeyword = sessionStorage.getItem('selfServiceInitialKeyword');
+                    if (deferredKeyword) {
+                        inputField.val(deferredKeyword);
+                        sessionStorage.removeItem('selfServiceInitialKeyword');
+                        setTimeout(function() {
+                            searchForm.submit();
+                        }, 50);
+                    }
+                } catch (e) {
+                    console.warn('sessionStorage not accessible', e);
+                }
+                
+                length = inputField.val().length;
                 inputField[0].setSelectionRange(length, length);
                 inputField.focus();
             }
@@ -291,8 +384,47 @@ foodcoopshop.SelfService = {
     barcodeBuffer: '',
     barcodeTimer: null,
 
+    detectDefaultStart: function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var startUrl = urlParams.get('selfServiceStartUrl');
+
+        if (startUrl) {
+            this.useDefaultStart = true;
+            this.defaultStartUrl = startUrl;
+            localStorage.setItem('fcs_self_service_start_url', startUrl);
+        } else {
+            var savedUrl = localStorage.getItem('fcs_self_service_start_url');
+            if (savedUrl) {
+                this.useDefaultStart = true;
+                this.defaultStartUrl = savedUrl;
+            } else {
+                this.useDefaultStart = false;
+            }
+        }
+    },
+
+    initDefaultStartUI: function() {
+        if (!this.useDefaultStart) return;
+        
+        var wrapper = $('.self-service-login-button-wrapper');
+        if (wrapper.length === 0) return;
+
+        wrapper.empty(); 
+
+        var startBtn = $('<a />')
+            .attr('href', this.defaultStartUrl)
+            .addClass('btn btn-success self-service-general-start-btn')
+            .html('SCANNE ein Produkt oder klicke hier zum START');
+
+        wrapper.append(startBtn);
+    },
+
     initGlobalBarcodeScannerListener: function() {
         $(document).on('keypress', function(e) {
+            if ($('#LoginForm').length > 0) {
+                return;
+            }
+
             if (e.key && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
                 foodcoopshop.SelfService.barcodeBuffer += e.key;
                 if (foodcoopshop.SelfService.barcodeTimer) clearTimeout(foodcoopshop.SelfService.barcodeTimer);
@@ -304,11 +436,22 @@ foodcoopshop.SelfService = {
                     var code = foodcoopshop.SelfService.barcodeBuffer;
                     foodcoopshop.SelfService.barcodeBuffer = '';
                     e.preventDefault();
-                    
+
                     var searchInput = $('form#product-search-1 input[name="keyword"]');
                     if (searchInput.length) {
                         searchInput.val(code);
                         searchInput.closest('form').submit();
+                        return;
+                    }
+
+                    if (foodcoopshop.SelfService.useDefaultStart && foodcoopshop.SelfService.defaultStartUrl) {
+                        try {
+                            sessionStorage.setItem('selfServiceInitialKeyword', code);
+                        } catch (e) {
+                            console.warn('sessionStorage not accessible', e);
+                        }
+                        document.location.href = foodcoopshop.SelfService.defaultStartUrl;
+                        return;
                     }
                 } else {
                     foodcoopshop.SelfService.barcodeBuffer = '';
