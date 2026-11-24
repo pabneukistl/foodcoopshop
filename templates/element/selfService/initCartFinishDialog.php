@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+use App\Model\Entity\Cart;
+use App\Services\SumUp\SumUpService;
 use Cake\Core\Configure;
 
 /**
@@ -39,13 +41,28 @@ if (empty($selfServicePaymentTypes) || !$identity->isSelfServiceCustomer()) {
 } else {
     $title = __('Choose_paymenttype_for_self_service_purchase_dialog');
     $html = '<p>' . __('Confirm_self_service_purchase_with_paymenttypes') . '</p>';
+    $sumUpEnabled = (new SumUpService())->isEnabled();
     foreach($selfServicePaymentTypes as $selfServicePaymentType) {
+        $paymentLabelLower = mb_strtolower((string) ($selfServicePaymentType['payment_type'] ?? ''));
+        $isCard = !empty($selfServicePaymentType['is_sumup'])
+            || !empty($selfServicePaymentType['is_card'])
+            || str_contains($paymentLabelLower, 'karte')
+            || str_contains($paymentLabelLower, 'bankomat')
+            || str_contains($paymentLabelLower, 'card');
+        $paymentTypeCode = $isCard ? Cart::SELF_SERVICE_PAYMENT_TYPE_CARD : Cart::SELF_SERVICE_PAYMENT_TYPE_CASH;
+        $useSumUp = $sumUpEnabled && (
+            array_key_exists('is_sumup', $selfServicePaymentType)
+                ? (bool) $selfServicePaymentType['is_sumup']
+                : $isCard
+        );
         $dialogButtons[] = [
             'classes' => 'btn-success no-auto-bind',
             'title' => $selfServicePaymentType['payment_type'],
-            'faIcon' => 'fa-fw fas fa-check',
+            'faIcon' => $isCard ? 'fa-fw fas fa-credit-card' : 'fa-fw fas fa-check',
             'isCloseButton' => true,
-            'value' => $selfServicePaymentType['payment_text']
+            'value' => $selfServicePaymentType['payment_text'],
+            'paymentTypeCode' => $paymentTypeCode,
+            'isSumUp' => $useSumUp,
         ];
     }
 }

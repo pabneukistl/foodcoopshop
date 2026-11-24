@@ -150,7 +150,11 @@ class Application extends BaseApplication
         // Token check will be skipped when callback returns `true`.
         $apiUrls = $this->getApiUrls();
         $csrf->skipCheckCallback(function ($request) use ($apiUrls) {
-            return in_array($request->getUri()->getPath(), $apiUrls);
+            $path = $request->getUri()->getPath();
+            if (Configure::read('app.sumUp.webhookEnabled') && str_ends_with($path, '/sumup/webhook')) {
+                return true;
+            }
+            return in_array($path, $apiUrls);
         });
 
         $authorizationMiddlewareConfig = [];

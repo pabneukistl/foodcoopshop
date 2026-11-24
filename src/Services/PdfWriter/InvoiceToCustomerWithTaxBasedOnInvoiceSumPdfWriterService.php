@@ -28,7 +28,7 @@ class InvoiceToCustomerWithTaxBasedOnInvoiceSumPdfWriterService extends PdfWrite
         $this->templateFile = DS . 'pdf' . DS . 'invoice_to_customer_service';
     }
 
-    public function prepareAndSetData(object $data, bool $paidInCash, string $newInvoiceNumber, string $invoiceDate): void
+    public function prepareAndSetData(object $data, bool|int|string $paidInCash, string $newInvoiceNumber, string $invoiceDate): void
     {
         $this->setData([
             'result' => $data,

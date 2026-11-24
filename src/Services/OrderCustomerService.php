@@ -34,7 +34,11 @@ class OrderCustomerService
 
     public static function isSelfServiceModeByUrl(): bool
     {
-        $result = Router::getRequest()->getPath() == '/' . __('route_self_service');
+        $path = Router::getRequest()->getPath();
+        $selfServicePrefix = '/' . __('route_self_service');
+        $result = $path === $selfServicePrefix
+            || str_starts_with($path, $selfServicePrefix . '/sumup/')
+            || str_starts_with($path, '/self-service/sumup/');
         if (!empty(Router::getRequest()->getQuery('redirect'))) {
             $result = (bool) preg_match('`' . '/' . __('route_self_service') . '`', Router::getRequest()->getQuery('redirect'));
         }

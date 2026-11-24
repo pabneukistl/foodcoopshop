@@ -207,9 +207,12 @@ class CartService
                     $invoiceData = $invoicesTable->getDataForCustomerInvoice($this->identity->getId(), $currentDay);
 
                     if (!OrderCustomerService::isOrderForDifferentCustomerMode()) {
-                        $paidInCash = 0;
-                        if ($this->identity->isSelfServiceCustomer()) {
-                            $paidInCash = 1;
+                        $paidInCash = \App\Model\Entity\Invoice::PAID_IN_CASH_CREDIT;
+                        $selectedPaymentType = (int) $this->request->getData('self_service_payment_type', 0);
+                        if ($selectedPaymentType === Cart::SELF_SERVICE_PAYMENT_TYPE_CARD || !empty($this->request->getData('sumup_transaction_id'))) {
+                            $paidInCash = \App\Model\Entity\Invoice::PAID_IN_CASH_CARD;
+                        } elseif ($selectedPaymentType === Cart::SELF_SERVICE_PAYMENT_TYPE_CASH || $this->identity->isSelfServiceCustomer()) {
+                            $paidInCash = \App\Model\Entity\Invoice::PAID_IN_CASH_CASH;
                         }
                         if (Configure::read('appDb.FCS_HELLO_CASH_API_ENABLED')) {
                             $helloCashService = new HelloCashService();

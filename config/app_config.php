@@ -219,7 +219,27 @@ return [
             'token' => '',
             'cashier_id' => 0,
             'payment_type_cash' => 'Bar',
+            'payment_type_card' => 'Bankomat',
             'payment_type_cashless' => 'Guthaben-System',
+        ],
+
+        /**
+         * SumUp Solo Cloud API configuration (override secrets in config/custom_config.php or via environment variables).
+         * To link a payment type in selfServicePaymentTypes to SumUp, set 'is_sumup' => true on that entry.
+         */
+        'sumUp' => [
+            'enabled' => filter_var(env('SUMUP_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+            'apiBaseUrl' => env('SUMUP_API_BASE_URL', 'https://api.sumup.com'),
+            'apiKey' => env('SUMUP_API_KEY', ''),
+            'merchantCode' => env('SUMUP_MERCHANT_CODE', ''),
+            'affiliateKey' => env('SUMUP_AFFILIATE_KEY', ''),
+            'affiliateAppId' => env('SUMUP_AFFILIATE_APP_ID', ''),
+            'readerId' => env('SUMUP_READER_ID', ''),
+            'currency' => env('SUMUP_CURRENCY', 'EUR'),
+            'pollIntervalMs' => (int) env('SUMUP_POLL_INTERVAL_MS', 2000),
+            'timeoutSeconds' => (int) env('SUMUP_TIMEOUT_SECONDS', 120),
+            'webhookEnabled' => filter_var(env('SUMUP_WEBHOOK_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+            'webhookSecret' => env('SUMUP_WEBHOOK_SECRET', ''),
         ],
 
         'helloCashAccountChangedDate' => '2020-01-01',

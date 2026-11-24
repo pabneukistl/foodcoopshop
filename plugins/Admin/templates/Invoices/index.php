@@ -87,6 +87,10 @@ if ($isOverviewMode && !empty($invoices)) {
         echo $this->element('invoice/taxSumTable', ['taxRates' => $taxRates['cash'], 'taxRatesSums' => $taxRatesSums['cash']]);
     }
 
+    if (!empty($taxRates['card'])) {
+        echo '<h4>' . __('Tax_overview_card') . '</h4>';
+        echo $this->element('invoice/taxSumTable', ['taxRates' => $taxRates['card'], 'taxRatesSums' => $taxRatesSums['card']]);
+    }
 
     if (!empty($taxRates['cashless'])) {
         echo '<h4>' . __('Tax_overview_cashless') . '</h4>';
@@ -178,7 +182,13 @@ $this->Paginator->setPaginated($invoices);
             echo '</td>';
 
             echo '<td class="center">';
-                echo $invoice->paid_in_cash_boolean ? __('yes') : __('no');
+                if ($invoice->isPaidByCard()) {
+                    echo __('Card_payment');
+                } elseif ($invoice->isPaidInCash()) {
+                    echo __('Cash');
+                } else {
+                    echo __('Credit');
+                }
             echo '</td>';
 
             echo '<td class="center">';

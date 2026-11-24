@@ -19,6 +19,10 @@ namespace App\Model\Entity;
 class Invoice extends AppEntity
 {
 
+    const PAID_IN_CASH_CREDIT = 0;
+    const PAID_IN_CASH_CASH = 1;
+    const PAID_IN_CASH_CARD = 2;
+
     protected array $_virtual = ['sum_price_excl', 'sum_tax', 'sum_price_incl'];
 
     /**
@@ -26,7 +30,17 @@ class Invoice extends AppEntity
      */
     protected function _getPaidInCashBoolean(): bool
     {
-        return $this->paid_in_cash == 1 ? true : false;
+        return (int) $this->paid_in_cash >= self::PAID_IN_CASH_CASH;
+    }
+
+    public function isPaidInCash(): bool
+    {
+        return (int) $this->paid_in_cash === self::PAID_IN_CASH_CASH;
+    }
+
+    public function isPaidByCard(): bool
+    {
+        return (int) $this->paid_in_cash === self::PAID_IN_CASH_CARD;
     }
 
     protected function _getSumPriceExcl(): float

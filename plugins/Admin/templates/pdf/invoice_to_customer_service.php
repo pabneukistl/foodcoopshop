@@ -73,6 +73,10 @@ if (Configure::read('app.additionalTextForInvoice') != '') {
 
 if (!$result->cancelledInvoice && $paidInCash) {
     $pdf->ln(3);
-    $html = '<p>'.__('Paid_in_cash_on_{0}.', [$invoiceDate]).'</p>';
+    if ((int) $paidInCash === \App\Model\Entity\Invoice::PAID_IN_CASH_CARD) {
+        $html = '<p>'.__('Paid_by_card_on_{0}.', [$invoiceDate]).'</p>';
+    } else {
+        $html = '<p>'.__('Paid_in_cash_on_{0}.', [$invoiceDate]).'</p>';
+    }
     $pdf->writeHTML($html);
 }

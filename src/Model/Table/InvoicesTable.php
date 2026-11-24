@@ -129,16 +129,24 @@ class InvoicesTable extends AppTable
         $taxRates = [
             'cashless' => [],
             'cash' => [],
+            'card' => [],
             'total' => [],
         ];
         $taxRatesSums = [
             'cashless' => $defaultArray,
             'cash' => $defaultArray,
+            'card' => $defaultArray,
             'total' => $defaultArray,
         ];
         foreach($invoices as $invoice) {
 
-            $taxRateType = $invoice->paid_in_cash_boolean ? 'cash' : 'cashless';
+            if ($invoice->isPaidByCard()) {
+                $taxRateType = 'card';
+            } elseif ($invoice->isPaidInCash()) {
+                $taxRateType = 'cash';
+            } else {
+                $taxRateType = 'cashless';
+            }
 
             foreach([$taxRateType, 'total'] as $trt) {
 
@@ -170,10 +178,12 @@ class InvoicesTable extends AppTable
 
         $taxRates['cashless'] = $this->clearZeroArray($taxRates['cashless']);
         $taxRates['cash'] = $this->clearZeroArray($taxRates['cash']);
+        $taxRates['card'] = $this->clearZeroArray($taxRates['card']);
         $taxRates['total'] = $this->clearZeroArray($taxRates['total']);
 
         ksort($taxRates['cashless'], SORT_NUMERIC);
         ksort($taxRates['cash'], SORT_NUMERIC);
+        ksort($taxRates['card'], SORT_NUMERIC);
         ksort($taxRates['total'], SORT_NUMERIC);
 
         $result = [

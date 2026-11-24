@@ -5978,3 +5978,51 @@ msgstr "Willst du deinen Warenkorb als Einkaufsliste „{0}“ speichern?"
 
 msgid "Your_cart_has_been_saved_as_shopping_list_{0}."
 msgstr "Dein Warenkorb wurde als Einkaufsliste {0} gespeichert."
+
+msgid "Card_payment"
+msgstr "Kartenzahlung"
+
+msgid "Tax_overview_card"
+msgstr "Steuersätze (Kartenzahlung)"
+
+msgid "Paid_by_card_on_{0}."
+msgstr "Am {0} per Kartenzahlung bezahlt."
+
+msgid "Card_payment_not_confirmed_please_try_again."
+msgstr "Die Kartenzahlung wurde nicht erfolgreich bestätigt. Bitte versuche es erneut oder wähle eine andere Zahlungsart."
+
+msgid "SumUp_integration_is_not_enabled."
+msgstr "Die SumUp-Kartenterminal-Anbindung ist derzeit nicht aktiviert."
+
+msgid "Payment_amount_must_be_greater_than_zero."
+msgstr "Der zu zahlende Betrag muss größer als 0 sein."
+
+msgid "No_active_card_payment_found."
+msgstr "Keine aktive Kartenzahlung gefunden. Bitte starte die Zahlung erneut."
+
+msgid "SumUp_sending_to_terminal"
+msgstr "Betrag wird an das Kartenterminal gesendet…"
+
+msgid "SumUp_waiting_for_terminal"
+msgstr "Bitte jetzt am Kartenterminal bezahlen…"
+
+msgid "SumUp_payment_successful_finishing"
+msgstr "Zahlung erfolgreich! Einkauf wird abgeschlossen…"
+
+msgid "SumUp_payment_cancelled."
+msgstr "Die Kartenzahlung wurde abgebrochen."
+
+msgid "SumUp_payment_failed."
+msgstr "Die Kartenzahlung wurde abgelehnt oder ist fehlgeschlagen."
+
+msgid "SumUp_payment_timeout"
+msgstr "Zeitüberschreitung am Kartenterminal. Bitte erneut versuchen oder eine andere Zahlungsart wählen."
+
+msgid "SumUp_amount_mismatch."
+msgstr "Der bezahlte Betrag stimmt nicht mit dem Warenkorb überein."
+
+msgid "SumUp_try_again"
+msgstr "Erneut versuchen"
+
+msgid "SumUp_choose_other_payment_type"
+msgstr "Andere Zahlungsart wählen"

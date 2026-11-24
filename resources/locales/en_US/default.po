@@ -5616,3 +5616,51 @@ msgstr "Do you want to save your cart as shopping list “{0}”?"
 
 msgid "Your_cart_has_been_saved_as_shopping_list_{0}."
 msgstr "Your cart has been saved as shopping list {0}."
+
+msgid "Card_payment"
+msgstr "Card payment"
+
+msgid "Tax_overview_card"
+msgstr "Tax overview (card payment)"
+
+msgid "Paid_by_card_on_{0}."
+msgstr "Paid by card on {0}."
+
+msgid "Card_payment_not_confirmed_please_try_again."
+msgstr "Card payment was not confirmed. Please try again or choose another payment method."
+
+msgid "SumUp_integration_is_not_enabled."
+msgstr "SumUp card terminal integration is not enabled."
+
+msgid "Payment_amount_must_be_greater_than_zero."
+msgstr "The payment amount must be greater than 0."
+
+msgid "No_active_card_payment_found."
+msgstr "No active card payment found. Please start the payment again."
+
+msgid "SumUp_sending_to_terminal"
+msgstr "Sending amount to card terminal…"
+
+msgid "SumUp_waiting_for_terminal"
+msgstr "Please pay at the card terminal now…"
+
+msgid "SumUp_payment_successful_finishing"
+msgstr "Payment successful! Completing purchase…"
+
+msgid "SumUp_payment_cancelled."
+msgstr "Card payment was cancelled."
+
+msgid "SumUp_payment_failed."
+msgstr "Card payment was declined or failed."
+
+msgid "SumUp_payment_timeout"
+msgstr "Card terminal timed out. Please try again or choose another payment method."
+
+msgid "SumUp_amount_mismatch."
+msgstr "Paid amount does not match the shopping cart total."
+
+msgid "SumUp_try_again"
+msgstr "Try again"
+
+msgid "SumUp_choose_other_payment_type"
+msgstr "Choose other payment method"

@@ -328,7 +328,7 @@ class InvoicesController extends AdminAppController
             $customer->is_cancellation_invoice = true;
 
             $invoiceToCustomerService = new GenerateInvoiceToCustomerService();
-            $newInvoice = $invoiceToCustomerService->run($customer, $currentDay, $invoice->paid_in_cash_boolean);
+            $newInvoice = $invoiceToCustomerService->run($customer, $currentDay, (int) $invoice->paid_in_cash);
             $invoiceId = $newInvoice->id;
             $cancelledInvoiceNumber = $invoice->invoice_number;
             $cancellationInvoiceNumber = $newInvoice->invoice_number;

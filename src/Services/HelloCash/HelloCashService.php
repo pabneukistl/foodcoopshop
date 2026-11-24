@@ -65,7 +65,16 @@ class HelloCashService
             $this->getOptions(),
         );
         $responseObject = $this->decodeApiResponseAndCheckForErrors($response);
-        $paidInCash = $responseObject->invoice_payment == 'Bar' ? 1 : 0;
+        $helloCashCredentials = Configure::read('app.helloCashAtCredentials');
+        $cashPaymentType = $helloCashCredentials['payment_type_cash'] ?? 'Bar';
+        $cardPaymentType = $helloCashCredentials['payment_type_card'] ?? 'Bankomat';
+        if ($responseObject->invoice_payment == $cardPaymentType) {
+            $paidInCash = \App\Model\Entity\Invoice::PAID_IN_CASH_CARD;
+        } elseif ($responseObject->invoice_payment == $cashPaymentType) {
+            $paidInCash = \App\Model\Entity\Invoice::PAID_IN_CASH_CASH;
+        } else {
+            $paidInCash = \App\Model\Entity\Invoice::PAID_IN_CASH_CREDIT;
+        }
 
         $taxRates = $this->prepareTaxesFromResponse($responseObject, true);
 
@@ -99,11 +108,19 @@ class HelloCashService
             Configure::read('appDb.FCS_DEPOSIT_TAX_RATE'),
         );
 
+        $helloCashCredentials = Configure::read('app.helloCashAtCredentials');
+        $invoicePaymentMethod = $helloCashCredentials['payment_type_cashless'];
+        if ((int) $paidInCash === \App\Model\Entity\Invoice::PAID_IN_CASH_CARD) {
+            $invoicePaymentMethod = $helloCashCredentials['payment_type_card'] ?? 'Bankomat';
+        } elseif ($paidInCash === true || (int) $paidInCash === \App\Model\Entity\Invoice::PAID_IN_CASH_CASH) {
+            $invoicePaymentMethod = $helloCashCredentials['payment_type_cash'];
+        }
+
         $postData = [
-            'cashier_id' => Configure::read('app.helloCashAtCredentials')['cashier_id'],
+            'cashier_id' => $helloCashCredentials['cashier_id'],
             'invoice_user_id' => $userId,
             'invoice_testMode' => $isPreview,
-            'invoice_paymentMethod' => $paidInCash ? Configure::read('app.helloCashAtCredentials')['payment_type_cash'] : Configure::read('app.helloCashAtCredentials')['payment_type_cashless'],
+            'invoice_paymentMethod' => $invoicePaymentMethod,
             'signature_mandatory' => 0,
         ];
 

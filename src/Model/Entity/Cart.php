@@ -25,5 +25,6 @@ class Cart extends AppEntity
 
     const SELF_SERVICE_PAYMENT_TYPE_CASH   = 1;
     const SELF_SERVICE_PAYMENT_TYPE_CREDIT = 2;
+    const SELF_SERVICE_PAYMENT_TYPE_CARD   = 3;
 
 }

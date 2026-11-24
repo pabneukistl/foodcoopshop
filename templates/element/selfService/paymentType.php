@@ -50,4 +50,9 @@ if (!Configure::read('app.selfServiceEasyModeEnabled')) {
 if ($paymentTypeAsString != '') {
     echo '<p class="payment-type">' .  __('Payment_type') . ': ' . $paymentTypeAsString . '</p>';
 }
+
+if (Configure::read('app.selfServiceEasyModeEnabled')) {
+    echo $this->Form->hidden('self_service_payment_type', ['value' => '']);
+    echo $this->Form->hidden('sumup_transaction_id', ['value' => '']);
+}
 ?>

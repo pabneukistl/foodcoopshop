@@ -837,4 +837,122 @@ class SelfServiceControllerTest extends AppCakeTestCase
         $this->assertRedirect($this->Slug->getSelfService());
     }
 
+    public function testSumUpStartCheckoutFailsWhenDisabled(): void
+    {
+        Configure::write('app.sumUp.enabled', false);
+        $this->loginAsSuperadmin();
+        $this->addProductToSelfServiceCart(ProductsFixture::ID_ARTICHOKE, 1, 0);
+
+        $this->ajaxPost('/self-service/sumup/start', []);
+        $response = $this->getJsonDecodedResponse();
+        $this->assertEquals(0, $response->status);
+    }
+
+    public function testSumUpOrderBlockedWithoutVerifiedPaymentSession(): void
+    {
+        Configure::write('app.sumUp', [
+            'enabled' => true,
+            'apiKey' => 'test_key',
+            'readerId' => 'rdr_test',
+            'merchantCode' => 'M123',
+        ]);
+        Configure::write('app.selfServiceEasyModeEnabled', true);
+
+        $this->loginAsCustomer();
+        $this->addProductToSelfServiceCart(ProductsFixture::ID_GARLIC, 1);
+
+        $this->post($this->Slug->getSelfService(), [
+            'self_service_payment_type' => Cart::SELF_SERVICE_PAYMENT_TYPE_CARD,
+            'sumup_transaction_id' => 'unverified-tx-123',
+        ]);
+
+        $this->assertRedirect($this->Slug->getSelfService());
+
+        $cartsTable = $this->getTableLocator()->get('Carts');
+        $cart = $cartsTable->find('all',
+            conditions: [
+                'Carts.id_customer' => Configure::read('test.customerId'),
+                'Carts.cart_type' => Cart::TYPE_SELF_SERVICE,
+            ],
+            order: [
+                'Carts.id_cart' => 'DESC',
+            ],
+        )->first();
+        // Cart must remain open (status = 1) because card payment was not verified
+        $this->assertEquals(1, $cart->status);
+    }
+
+    public function testSumUpOrderCompletesWithVerifiedSessionAndMarksInvoiceAsCard(): void
+    {
+        Configure::write('app.sumUp', [
+            'enabled' => true,
+            'apiKey' => 'test_key',
+            'readerId' => 'rdr_test',
+            'merchantCode' => 'M123',
+        ]);
+        Configure::write('app.selfServiceEasyModeEnabled', true);
+        $this->changeConfiguration('FCS_SEND_INVOICES_TO_CUSTOMERS', 1);
+        $this->changeCustomer(Configure::read('test.selfServiceCustomerId'), 'invoices_per_email_enabled', 0);
+
+        $this->loginAsSuperadmin();
+        $this->get('/admin/customers/changeStatus/' . Configure::read('test.selfServiceCustomerId') . '/1/0');
+        $this->loginAsSelfServiceCustomer();
+        $this->addProductToSelfServiceCart(ProductsFixture::ID_ARTICHOKE, 1, 0);
+
+        $cartsTable = $this->getTableLocator()->get('Carts');
+        $cart = $cartsTable->find('all',
+            conditions: [
+                'Carts.id_customer' => Configure::read('test.selfServiceCustomerId'),
+                'Carts.cart_type' => Cart::TYPE_SELF_SERVICE,
+                'Carts.status' => APP_ON,
+            ],
+            order: [
+                'Carts.id_cart' => 'DESC',
+            ],
+        )->first();
+
+        $preparedCart = $cartsTable->getCart(Configure::read('test.selfServiceCustomerId'), Cart::TYPE_SELF_SERVICE);
+        $expectedCents = (int) round(($preparedCart['CartProductSum'] + $preparedCart['CartDepositSum']) * 100);
+
+        $this->session([
+            'sumup_verified_payment' => [
+                'client_transaction_id' => 'verified-tx-999',
+                'cart_id' => $cart->id_cart,
+                'amount_cents' => $expectedCents,
+                'verified_at' => time(),
+            ],
+        ]);
+
+        $this->post($this->Slug->getSelfService(), [
+            'self_service_payment_type' => Cart::SELF_SERVICE_PAYMENT_TYPE_CARD,
+            'sumup_transaction_id' => 'verified-tx-999',
+        ]);
+
+        $this->assertRedirect($this->Slug->getSelfService());
+
+        $invoicesTable = $this->getTableLocator()->get('Invoices');
+        $invoice = $invoicesTable->find('all', order: ['Invoices.id' => 'DESC'])->first();
+        $this->assertNotEmpty($invoice);
+        $this->assertEquals(\App\Model\Entity\Invoice::PAID_IN_CASH_CARD, $invoice->paid_in_cash);
+        $this->assertTrue($invoice->isPaidByCard());
+    }
+
+    public function testSumUpCancelCheckoutClearsPendingSession(): void
+    {
+        Configure::write('app.sumUp.enabled', false);
+        $this->loginAsSuperadmin();
+        $this->session([
+            'sumup_pending_payment' => [
+                'client_transaction_id' => 'pending-tx-1',
+                'cart_id' => 1,
+                'amount_cents' => 500,
+            ],
+        ]);
+
+        $this->ajaxPost('/self-service/sumup/cancel', []);
+        $response = $this->getJsonDecodedResponse();
+        $this->assertEquals(1, $response->status);
+        $this->assertSessionNotHasKey('sumup_pending_payment');
+    }
+
 }

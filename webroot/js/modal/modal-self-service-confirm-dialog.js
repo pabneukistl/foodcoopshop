@@ -12,10 +12,12 @@
  * @link          https://www.foodcoopshop.com
  */
 foodcoopshop.ModalSelfServiceConfirmDialog = {
-   
+
+    modalSelector: '#self-service-confirm-dialog',
+
     init : function(title, html, dialogbuttons) {
 
-        var modalSelector = '#self-service-confirm-dialog';
+        var modalSelector = this.modalSelector;
         var buttons = [];
         dialogbuttons = $.parseJSON(dialogbuttons);
 
@@ -23,8 +25,8 @@ foodcoopshop.ModalSelfServiceConfirmDialog = {
             return;
         }
 
-        for(var i=0;i<dialogbuttons.length;i++) {
-           buttons[i] = [foodcoopshop.Modal.createButton([dialogbuttons[i].classes], dialogbuttons[i].title, dialogbuttons[i].faIcon, dialogbuttons[i].isCloseButton, [dialogbuttons[i].value])];
+        for (var i = 0; i < dialogbuttons.length; i++) {
+            buttons[i] = [foodcoopshop.Modal.createButton([dialogbuttons[i].classes], dialogbuttons[i].title, dialogbuttons[i].faIcon, dialogbuttons[i].isCloseButton, [dialogbuttons[i].value])];
         }
 
         foodcoopshop.Modal.appendModalToDom(
@@ -34,6 +36,17 @@ foodcoopshop.ModalSelfServiceConfirmDialog = {
             buttons
         );
 
+        // Attach structured payment metadata to each payment type button
+        var paymentButtons = $(modalSelector + ' button.btn-success.no-auto-bind');
+        var paymentConfigs = dialogbuttons.filter(function(btn) {
+            return btn.classes && btn.classes.indexOf('no-auto-bind') !== -1;
+        });
+        paymentButtons.each(function(index) {
+            var cfg = paymentConfigs[index] || {};
+            $(this).data('payment-type-code', cfg.paymentTypeCode || '');
+            $(this).data('is-sumup', Boolean(cfg.isSumUp));
+        });
+
         foodcoopshop.Modal.bindSuccessButton(modalSelector, function() {
             foodcoopshop.ModalSelfServiceConfirmDialog.getSuccessHandler();
         });
@@ -42,8 +55,17 @@ foodcoopshop.ModalSelfServiceConfirmDialog = {
             foodcoopshop.ModalSelfServiceConfirmDialog.getOpenHandler(modalSelector);
         });
 
-        $(modalSelector + ' button.btn-success.no-auto-bind').on('click', function () {
-            foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.getOpenHandler('#self-service-confirm-dialog-paymenttype-details', $(this).text(), $(this).attr('value'));
+        paymentButtons.on('click', function () {
+            var btn = $(this);
+            foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog.getOpenHandler(
+                '#self-service-confirm-dialog-paymenttype-details',
+                btn.text().trim(),
+                btn.attr('value') || '',
+                {
+                    paymentTypeCode: btn.data('payment-type-code'),
+                    isSumUp: Boolean(btn.data('is-sumup'))
+                }
+            );
         });
 
         $(modalSelector + ' button.btn-outline-light').on('click', function () {
@@ -52,16 +74,20 @@ foodcoopshop.ModalSelfServiceConfirmDialog = {
 
         $(modalSelector + ' button.btn-close').on('click', function () {
             foodcoopshop.ModalSelfServiceConfirmDialog.getCloseHandler(modalSelector);
-        }); 
+        });
     },
 
     getSuccessHandler : function() {
-       var selfSForm = $('#SelfServiceForm');
-       selfSForm.submit();
+        var selfSForm = $('#SelfServiceForm');
+        selfSForm.submit();
     },
 
     getOpenHandler : function(modalSelector) {
-        new bootstrap.Modal(document.getElementById(modalSelector.replace(/#/, ''))).show();
+        var selector = modalSelector || this.modalSelector;
+        var el = document.getElementById(selector.replace(/#/, ''));
+        if (el) {
+            bootstrap.Modal.getOrCreateInstance(el).show();
+        }
     },
 
     getCloseHandler : function(modalSelector) {
