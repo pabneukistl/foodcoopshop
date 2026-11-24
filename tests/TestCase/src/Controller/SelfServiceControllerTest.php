@@ -726,4 +726,115 @@ class SelfServiceControllerTest extends AppCakeTestCase
         ]);
     }
 
+    public function testAutoLoginAsSelfServiceCustomerWithConfiguredDefaultStartUrl(): void
+    {
+        $selfServiceCustomerId = Configure::read('test.selfServiceCustomerId');
+        $this->changeCustomer($selfServiceCustomerId, 'active', 1);
+        Configure::write('app.selfServiceLoginCustomers', [
+            [
+                'id' => 1,
+                'label' => 'SB-Kunde',
+                'customerId' => $selfServiceCustomerId,
+            ],
+        ]);
+
+        $loginUrl = $this->Slug->getLogin() . '?' . http_build_query([
+            'redirect' => $this->Slug->getSelfService(),
+            'selfServiceStartUrl' => '/self-service/autoLoginAsSelfServiceCustomer/1',
+        ]);
+
+        $this->get($loginUrl);
+
+        $this->assertResponseOk();
+        $this->assertResponseContains('self-service-login-button-wrapper');
+        $this->assertResponseContains('foodcoopshop.SelfService.injectLoginButtons');
+    }
+
+    public function testAutoLoginAsSelfServiceCustomerWithEmptyConfigDoesNotCrash(): void
+    {
+        Configure::write('app.selfServiceLoginCustomers', []);
+        $this->get($this->Slug->getSelfService() . '?selfServiceStartUrl=' . urlencode('/self-service/start?customer=999'));
+
+        $this->assertResponseCode(302);
+    }
+
+    public function testAutoLoginAsSelfServiceCustomerWithInvalidGroupDoesNotCrash(): void
+    {
+        $invalidCustomerId = Configure::read('test.customerId');
+
+        $this->loginAsSuperadmin();
+        $this->get('/admin/customers/changeStatus/' . $invalidCustomerId . '/1/0');
+        $this->logout();
+
+        Configure::write('app.selfServiceLoginCustomers', [
+            [
+                'id' => 1,
+                'label' => 'Falscher SB-Kunde',
+                'customerId' => $invalidCustomerId,
+            ],
+        ]);
+
+        $this->get($this->Slug->getAutoLoginAsSelfServiceCustomer(1));
+
+        $this->assertFlashMessage('Anmelden ist fehlgeschlagen.');
+        $this->assertRedirect($this->Slug->getHome());
+    }
+
+    public function testCheckBarcodeTypeCustomer(): void
+    {
+        $this->logout();
+        $testCustomerId = Configure::read('test.superadminId');
+        if ($testCustomerId) {
+            $this->changeCustomer($testCustomerId, 'active', 1);
+        }
+
+        $barcode = Configure::read('test.superadminBarCode');
+
+        $this->configRequest([
+            'headers' => [
+                'Accept' => 'application/json',
+                'X-Requested-With' => 'XMLHttpRequest',
+            ],
+        ]);
+
+        $this->get('/self-service/check-barcode-type?barcode=' . urlencode($barcode));
+
+        $this->assertResponseOk();
+
+        $body = (string)$this->_response->getBody();
+        $this->assertJsonStringEqualsJsonString(json_encode(['type' => 'customer'], JSON_THROW_ON_ERROR), $body);
+    }
+
+    public function testCheckBarcodeTypeProduct(): void
+    {
+        $this->logout();
+        $productBarcode = BarcodesFixture::BARCODE_PRODUCT_A['barcode'];
+        $this->configRequest([
+            'headers' => [
+                'Accept' => 'application/json',
+                'X-Requested-With' => 'XMLHttpRequest',
+            ],
+        ]);
+
+        $this->get('/self-service/check-barcode-type?barcode=' . urlencode($productBarcode));
+        $this->assertResponseOk();
+
+        $body = (string)$this->_response->getBody();
+        $this->assertJsonStringEqualsJsonString(json_encode(['type' => 'product'], JSON_THROW_ON_ERROR), $body);
+    }
+
+    public function testIndexStripsCustomerBarcodeKeywordAndRedirects(): void
+    {
+        $this->loginAsSuperadmin();
+        $testCustomerId = Configure::read('test.superadminId');
+        if ($testCustomerId) {
+            $this->changeCustomer($testCustomerId, 'active', 1);
+        }
+        $customerBarcode = Configure::read('test.superadminBarCode');
+
+        $this->get($this->Slug->getSelfService() . '?keyword=' . urlencode($customerBarcode));
+        $this->assertResponseCode(302);
+        $this->assertRedirect($this->Slug->getSelfService());
+    }
+
 }

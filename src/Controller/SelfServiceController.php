@@ -32,6 +32,7 @@ class SelfServiceController extends FrontendController
         $this->Authentication->allowUnauthenticated([
             'index',
             'autoLoginAsSelfServiceCustomer',
+            'checkBarcodeType',
         ]);
     }
 
@@ -40,7 +41,12 @@ class SelfServiceController extends FrontendController
 
         $this->disableAutoRender();
 
-        $id = (int) $this->getRequest()->getParam('id');
+        $id = $this->getRequest()->getParam('id');
+        if (empty($id)) {
+            $pass = $this->getRequest()->getParam('pass');
+            $id = $pass[0] ?? 0;
+        }
+        $id = (int)$id;
 
         $selfServiceLoginCustomer = array_filter(Configure::read('app.selfServiceLoginCustomers'), function($selfServiceLoginCustomer) use ($id) {
             return $selfServiceLoginCustomer['id'] == $id;
@@ -77,6 +83,32 @@ class SelfServiceController extends FrontendController
         $this->set('categoryId', $categoryId);
 
         $keyword = h(trim($this->getRequest()->getQuery('keyword', '')));
+
+        if ($keyword !== '') {
+            $customersTable = $this->getTableLocator()->get('Customers');
+            try {
+                if (method_exists($customersTable, 'getBarcodeFieldString')) {
+                    $barcodeFieldExpr = 'UPPER(' . $customersTable->getBarcodeFieldString() . ')';
+                    $keywordUpper = strtoupper($keyword);
+
+                    $customerCard = $customersTable->find()
+                        ->select([$customersTable->aliasField('id_customer')])
+                        ->where([
+                            $barcodeFieldExpr . ' = ' => $keywordUpper,
+                            $customersTable->aliasField('active') => APP_ON,
+                        ])
+                        ->limit(1)
+                        ->first();
+
+                    if ($customerCard !== null) {
+                        return $this->redirect(Configure::read('app.slugHelper')->getSelfService());
+                    }
+                }
+            } catch (\Throwable $e) {
+                // defensive: ignore error so normal search continues
+            }
+        }
+
         $this->set('keyword', $keyword);
 
         if (!empty($this->getRequest()->getQuery('productWithError'))) {
@@ -229,6 +261,42 @@ class SelfServiceController extends FrontendController
 
         return null;
 
+    }
+
+    public function checkBarcodeType(): void
+    {
+        $this->request->allowMethod(['get']);
+        $barcode = (string)$this->getRequest()->getQuery('barcode', '');
+        $type = 'product';
+
+        if ($barcode !== '') {
+            $customersTable = $this->getTableLocator()->get('Customers');
+
+            try {
+                if (method_exists($customersTable, 'getBarcodeFieldString')) {
+                    $barcodeFieldExpr = $customersTable->getBarcodeFieldString();
+
+                    $customer = $customersTable->find()
+                        ->select(['id_customer'])
+                        ->where([
+                            $barcodeFieldExpr . ' =' => $barcode,
+                            $customersTable->aliasField('active') => APP_ON,
+                        ])
+                        ->limit(1)
+                        ->first();
+
+                    if ($customer !== null) {
+                        $type = 'customer';
+                    }
+                }
+            } catch (\Throwable $e) {
+                // defensive: default to product
+            }
+        }
+
+        $this->set(compact('type'));
+        $this->viewBuilder()->setClassName('Json');
+        $this->viewBuilder()->setOption('serialize', ['type']);
     }
 
 }

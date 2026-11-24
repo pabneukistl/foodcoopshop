@@ -29,6 +29,7 @@ class SelfServicePolicy implements RequestPolicyInterface
     {
         switch ($request->getParam('action')) {
             case 'autoLoginAsSelfServiceCustomer':
+            case 'checkBarcodeType':
                 return true;
         }
 

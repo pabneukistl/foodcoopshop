@@ -341,6 +341,35 @@ class CustomersController extends FrontendController
                 $result = $this->Authentication->getResult();
                 if ($result->isValid()) {
                     $target = $this->Authentication->getLoginRedirect() ?? Configure::read('app.slugHelper')->getHome();
+                    $barcodePosted = (string)$this->getRequest()->getData('barcode', '');
+                    if ($barcodePosted !== '') {
+                        try {
+                            if (method_exists($customersTable, 'getBarcodeFieldString')) {
+                                $barcodeFieldExpr = $customersTable->getBarcodeFieldString();
+                                $customer = $customersTable->find()
+                                    ->select([$customersTable->aliasField('id_customer')])
+                                    ->where([
+                                        $barcodeFieldExpr . ' =' => $barcodePosted,
+                                        $customersTable->aliasField('active') => APP_ON,
+                                    ])
+                                    ->limit(1)
+                                    ->first();
+
+                                if ($customer !== null && is_string($target) && strpos($target, '?') !== false) {
+                                    $urlParts = parse_url($target);
+                                    parse_str($urlParts['query'] ?? '', $qs);
+                                    if (isset($qs['keyword']) && (string)$qs['keyword'] === $barcodePosted) {
+                                        unset($qs['keyword']);
+                                        $newQuery = http_build_query($qs);
+                                        $target = ($urlParts['path'] ?? '') . ($newQuery !== '' ? '?' . $newQuery : '');
+                                    }
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                            // defensive: ignore error so login flow does not break
+                        }
+                    }
+
                     return $this->redirect($target);
                 } else {
                     $errorMessageSigningInFailed = __('Signing_in_failed_account_inactive_or_password_wrong?');
