@@ -42,6 +42,8 @@ class SelfServiceControllerTest extends AppCakeTestCase
     {
         parent::setUp();
         $this->changeConfiguration('FCS_SELF_SERVICE_MODE_FOR_STOCK_PRODUCTS_ENABLED', 1);
+        Configure::write('app.selfServiceEasyModeEnabled', false);
+        Configure::write('app.sumUp.enabled', false);
     }
 
     public function testPageSelfService(): void
@@ -911,7 +913,9 @@ class SelfServiceControllerTest extends AppCakeTestCase
             ],
         )->first();
 
-        $preparedCart = $cartsTable->getCart(Configure::read('test.selfServiceCustomerId'), Cart::TYPE_SELF_SERVICE);
+        $customersTable = $this->getTableLocator()->get('Customers');
+        $selfServiceCustomer = $customersTable->get(Configure::read('test.selfServiceCustomerId'));
+        $preparedCart = $cartsTable->getCart($selfServiceCustomer, Cart::TYPE_SELF_SERVICE);
         $expectedCents = (int) round(($preparedCart['CartProductSum'] + $preparedCart['CartDepositSum']) * 100);
 
         $this->session([

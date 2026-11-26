@@ -362,7 +362,7 @@ class SelfServiceController extends FrontendController
         }
 
         $cartsTable = $this->getTableLocator()->get('Carts');
-        $selfServiceCart = $cartsTable->getCart($this->identity->getId(), Cart::TYPE_SELF_SERVICE);
+        $selfServiceCart = $cartsTable->getCart($this->identity, Cart::TYPE_SELF_SERVICE);
         if (empty($selfServiceCart['CartProducts'])) {
             $this->set([
                 'status' => 0,

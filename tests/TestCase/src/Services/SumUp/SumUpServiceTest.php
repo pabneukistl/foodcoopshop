@@ -100,7 +100,7 @@ class SumUpServiceTest extends TestCase
 
     public function testCreateReaderCheckoutRejectsZeroAmount(): void
     {
-        $service = new SumUpService($this->getDefaultConfig(), $this->createMock(Client::class));
+        $service = new SumUpService($this->getDefaultConfig(), $this->createStub(Client::class));
         $this->expectException(SumUpApiException::class);
         $service->createReaderCheckout(0, 'fcs-1');
     }
@@ -113,7 +113,7 @@ class SumUpServiceTest extends TestCase
             ->with(
                 'https://api.sumup.com/v2.1/merchants/M123456/transactions?client_transaction_id=tx-ok-1',
                 [],
-                $this->isType('array'),
+                $this->isArray(),
             )
             ->willReturn($this->createJsonResponse(200, [
                 'status' => 'SUCCESSFUL',
@@ -156,7 +156,7 @@ class SumUpServiceTest extends TestCase
 
     public function testGetTransactionStatusMapsFailedAndCancelled(): void
     {
-        $service = new SumUpService($this->getDefaultConfig(), $this->createMock(Client::class));
+        $service = new SumUpService($this->getDefaultConfig(), $this->createStub(Client::class));
         $this->assertSame(SumUpService::STATUS_SUCCESSFUL, $service->normalizeTransactionStatus('SUCCESSFUL'));
         $this->assertSame(SumUpService::STATUS_FAILED, $service->normalizeTransactionStatus('FAILED'));
         $this->assertSame(SumUpService::STATUS_FAILED, $service->normalizeTransactionStatus('DECLINED'));
@@ -171,8 +171,8 @@ class SumUpServiceTest extends TestCase
             ->method('post')
             ->with(
                 'https://api.sumup.com/v0.1/merchants/M123456/readers/rdr_solo_001/terminate',
-                $this->isType('string'),
-                $this->isType('array'),
+                $this->isString(),
+                $this->isArray(),
             )
             ->willReturnOnConsecutiveCalls(
                 $this->createJsonResponse(202, ''),
@@ -210,7 +210,7 @@ class SumUpServiceTest extends TestCase
 
     public function testSanitizeForLogRedactsSensitiveCredentials(): void
     {
-        $service = new SumUpService($this->getDefaultConfig(), $this->createMock(Client::class));
+        $service = new SumUpService($this->getDefaultConfig(), $this->createStub(Client::class));
         $raw = 'Authorization: Bearer sup_sk_secret_api_key_12345 affiliate=sup_afk_secret_aff_98765 secret=whsec_secret_555';
         $sanitized = $service->sanitizeForLog($raw);
 
