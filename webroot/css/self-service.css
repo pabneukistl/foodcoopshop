@@ -188,6 +188,27 @@ body.self_services #content {
     bottom: 17px;
     left: 10px;
 }
+.self-service .footer .center-wrapper {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+}
+.self-service .footer .center-wrapper .btn-sumup-free-amount {
+    font-size: 13px;
+    padding: 5px 12px;
+    border-color: #bbb;
+    color: #333;
+    background-color: #f8f9fa;
+    white-space: nowrap;
+}
+.self-service .footer .center-wrapper .btn-sumup-free-amount:hover,
+.self-service .footer .center-wrapper .btn-sumup-free-amount:focus {
+    background-color: #e9ecef;
+    border-color: #999;
+    color: #111;
+}
 .self-service .footer .right-wrapper {
     position: absolute;
     bottom: 6px;
@@ -224,6 +245,13 @@ body.customers.login #content.self-service {
 body.customers.login .footer .left-wrapper,
 body.customers.login .footer .right-wrapper .btn-add-deposit {
     display: none;
+}
+body.customers.login .self-service .footer .center-wrapper {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
 }
 .self-service #cart {
     position: static;
@@ -345,4 +373,72 @@ body.self_services .btn-flash-message-continue {
 body.self_services #categoryid {
     width: 193px;
     height: 32px;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-wrapper {
+    text-align: center;
+    padding: 4px 8px;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-hint {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 12px;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-input-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 260px;
+    margin: 0 auto 10px auto;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-input {
+    font-size: 28px;
+    font-weight: 600;
+    text-align: right;
+    height: 54px;
+    padding: 6px 12px;
+    border-radius: 6px 0 0 6px;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-currency {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 54px;
+    padding: 0 14px;
+    font-size: 24px;
+    font-weight: 600;
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    color: #333;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-validation-error {
+    background: #f8d7da;
+    color: #721c24;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 0 auto 12px auto;
+    max-width: 300px;
+    font-size: 14px;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 260px;
+    margin: 12px auto 4px auto;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key {
+    height: 54px;
+    font-size: 22px;
+    font-weight: 600;
+    border-color: #ced4da;
+    color: #222;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key:hover,
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key:active {
+    background-color: #dee2e6;
+    border-color: #adb5bd;
 }

@@ -447,7 +447,7 @@ foodcoopshop.SelfService = {
 
     initGlobalBarcodeScannerListener: function() {
         $(document).on('keypress', function(e) {
-            if ($('#LoginForm').length > 0) {
+            if ($('#LoginForm').length > 0 || $('#self-service-sumup-free-amount-dialog.show').length > 0) {
                 return;
             }
 

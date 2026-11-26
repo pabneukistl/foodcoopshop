@@ -6029,3 +6029,36 @@ msgstr "Andere Zahlungsart wählen"
 
 msgid "SumUp_amount_label"
 msgstr "Zu zahlender Betrag:"
+
+msgid "SumUp_free_amount_button"
+msgstr "Freien Betrag mit Karte zahlen"
+
+msgid "SumUp_free_amount_modal_title"
+msgstr "Freien Betrag mit Karte zahlen"
+
+msgid "SumUp_free_amount_hint"
+msgstr "Mindestbetrag 1,00 € – Zahlung direkt am Kartenterminal (z. B. für Barsäckchen, ohne Bestellerfassung)."
+
+msgid "SumUp_free_amount_pay_button"
+msgstr "Am Terminal bezahlen"
+
+msgid "SumUp_free_amount_change_amount"
+msgstr "Betrag ändern"
+
+msgid "SumUp_free_amount_description"
+msgstr "Barsäckchen / Freier Betrag"
+
+msgid "SumUp_free_amount_invalid."
+msgstr "Bitte gib einen gültigen Betrag ein."
+
+msgid "SumUp_free_amount_min_error."
+msgstr "Der Mindestbetrag für Kartenzahlung beträgt 1,00 €."
+
+msgid "SumUp_free_amount_max_error."
+msgstr "Der maximale Betrag pro Einzelzahlung beträgt 500,00 €."
+
+msgid "SumUp_free_amount_success_{0}"
+msgstr "Zahlung über {0} erfolgreich! Vielen Dank!"
+
+msgid "SumUp_free_amount_close"
+msgstr "Schließen"

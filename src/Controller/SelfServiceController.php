@@ -47,6 +47,9 @@ class SelfServiceController extends FrontendController
             'index',
             'autoLoginAsSelfServiceCustomer',
             'checkBarcodeType',
+            'sumUpStartFreeAmount',
+            'sumUpCheckStatus',
+            'sumUpCancelCheckout',
             'sumUpWebhook',
         ]);
     }
@@ -441,6 +444,120 @@ class SelfServiceController extends FrontendController
         }
     }
 
+    /**
+     * Initiates a standalone free-amount SumUp Solo payment (e.g. cash-bag / Barsäckchen)
+     * without creating a FoodCoopShop order or invoice.
+     */
+    public function sumUpStartFreeAmount(): void
+    {
+        $this->request->allowMethod(['post']);
+        $this->viewBuilder()->setClassName('Json');
+
+        $sumUpService = $this->getSumUpService();
+        if (!$sumUpService->isEnabled()) {
+            $this->set([
+                'status' => 0,
+                'msg' => __('SumUp_integration_is_not_enabled.'),
+            ]);
+            $this->viewBuilder()->setOption('serialize', ['status', 'msg']);
+            return;
+        }
+
+        $rawAmount = trim((string) $this->getRequest()->getData('amount', ''));
+        $normalizedAmount = str_replace(['€', ' ', "\u{00A0}"], '', $rawAmount);
+        // Handle German decimal comma (e.g. "12,50" -> "12.50")
+        if (str_contains($normalizedAmount, ',') && str_contains($normalizedAmount, '.')) {
+            $normalizedAmount = str_replace('.', '', $normalizedAmount);
+        }
+        $normalizedAmount = str_replace(',', '.', $normalizedAmount);
+
+        if ($normalizedAmount === '' || !is_numeric($normalizedAmount)) {
+            $this->set([
+                'status' => 0,
+                'msg' => __('SumUp_free_amount_invalid.'),
+            ]);
+            $this->viewBuilder()->setOption('serialize', ['status', 'msg']);
+            return;
+        }
+
+        $amountFloat = (float) $normalizedAmount;
+        $amountInCents = (int) round($amountFloat * 100);
+        if ($amountInCents < 100) {
+            $this->set([
+                'status' => 0,
+                'msg' => __('SumUp_free_amount_min_error.'),
+            ]);
+            $this->viewBuilder()->setOption('serialize', ['status', 'msg']);
+            return;
+        }
+
+        if ($amountInCents > 50000) {
+            $this->set([
+                'status' => 0,
+                'msg' => __('SumUp_free_amount_max_error.'),
+            ]);
+            $this->viewBuilder()->setOption('serialize', ['status', 'msg']);
+            return;
+        }
+
+        $foreignTransactionId = 'fcs-free-' . bin2hex(random_bytes(6));
+        $description = Configure::read('appDb.FCS_APP_NAME') . ' - ' . __('SumUp_free_amount_description');
+
+        $returnUrl = null;
+        if ((bool) $sumUpService->getConfig('webhookEnabled', false)) {
+            $baseUrl = rtrim((string) Configure::read('App.fullBaseUrl'), '/');
+            $secret = trim((string) $sumUpService->getConfig('webhookSecret', ''));
+            $returnUrl = $baseUrl . '/' . __('route_self_service') . '/sumup/webhook';
+            if ($secret !== '') {
+                $returnUrl .= '?secret=' . rawurlencode($secret);
+            }
+        }
+
+        try {
+            $result = $sumUpService->createReaderCheckout(
+                $amountInCents,
+                $foreignTransactionId,
+                $description,
+                $returnUrl,
+            );
+
+            $clientTransactionId = $result['client_transaction_id'];
+            $session = $this->request->getSession();
+            $session->delete('sumup_verified_payment');
+            $session->write('sumup_pending_payment', [
+                'client_transaction_id' => $clientTransactionId,
+                'foreign_transaction_id' => $foreignTransactionId,
+                'cart_id' => 0,
+                'is_free_amount' => true,
+                'amount_cents' => $amountInCents,
+                'started_at' => time(),
+            ]);
+
+            $this->set([
+                'status' => 1,
+                'transactionId' => $clientTransactionId,
+                'amountCents' => $amountInCents,
+                'amountFormatted' => Configure::read('app.numberHelper')->formatAsCurrency($amountInCents / 100),
+                'pollIntervalMs' => max(1000, (int) $sumUpService->getConfig('pollIntervalMs', 2000)),
+                'timeoutSeconds' => max(30, (int) $sumUpService->getConfig('timeoutSeconds', 120)),
+            ]);
+            $this->viewBuilder()->setOption('serialize', [
+                'status',
+                'transactionId',
+                'amountCents',
+                'amountFormatted',
+                'pollIntervalMs',
+                'timeoutSeconds',
+            ]);
+        } catch (SumUpApiException $e) {
+            $this->set([
+                'status' => 0,
+                'msg' => $e->getMessage(),
+            ]);
+            $this->viewBuilder()->setOption('serialize', ['status', 'msg']);
+        }
+    }
+
     public function sumUpCheckStatus(): void
     {
         $this->request->allowMethod(['get']);
@@ -494,13 +611,15 @@ class SelfServiceController extends FrontendController
                     }
                 }
 
-                $session->write('sumup_verified_payment', [
-                    'client_transaction_id' => $txId,
-                    'cart_id' => (int) $pending['cart_id'],
-                    'amount_cents' => (int) $pending['amount_cents'],
-                    'transaction_code' => $result['transactionCode'],
-                    'verified_at' => time(),
-                ]);
+                if (empty($pending['is_free_amount'])) {
+                    $session->write('sumup_verified_payment', [
+                        'client_transaction_id' => $txId,
+                        'cart_id' => (int) $pending['cart_id'],
+                        'amount_cents' => (int) $pending['amount_cents'],
+                        'transaction_code' => $result['transactionCode'],
+                        'verified_at' => time(),
+                    ]);
+                }
                 $session->delete('sumup_pending_payment');
                 Cache::delete('sumup_webhook_' . md5($txId));
             } elseif (in_array($result['status'], [SumUpService::STATUS_FAILED, SumUpService::STATUS_CANCELLED], true)) {

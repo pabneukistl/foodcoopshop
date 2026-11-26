@@ -5667,3 +5667,36 @@ msgstr "Choose other payment method"
 
 msgid "SumUp_amount_label"
 msgstr "Amount to pay:"
+
+msgid "SumUp_free_amount_button"
+msgstr "Pay custom amount by card"
+
+msgid "SumUp_free_amount_modal_title"
+msgstr "Pay custom amount by card"
+
+msgid "SumUp_free_amount_hint"
+msgstr "Minimum amount €1.00 – direct payment at the card terminal (without creating an order)."
+
+msgid "SumUp_free_amount_pay_button"
+msgstr "Pay at terminal"
+
+msgid "SumUp_free_amount_change_amount"
+msgstr "Change amount"
+
+msgid "SumUp_free_amount_description"
+msgstr "Cash bag / Custom amount"
+
+msgid "SumUp_free_amount_invalid."
+msgstr "Please enter a valid amount."
+
+msgid "SumUp_free_amount_min_error."
+msgstr "The minimum amount for card payment is €1.00."
+
+msgid "SumUp_free_amount_max_error."
+msgstr "The maximum amount per single payment is €500.00."
+
+msgid "SumUp_free_amount_success_{0}"
+msgstr "Payment of {0} successful! Thank you!"
+
+msgid "SumUp_free_amount_close"
+msgstr "Close"

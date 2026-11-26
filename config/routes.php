@@ -79,10 +79,12 @@ return function (RouteBuilder $routes) {
             $routes->connect('/'.__('route_self_service') . '/check-barcode-type', ['controller' => 'SelfService', 'action' => 'checkBarcodeType']);
             $routes->connect('/self-service/check-barcode-type', ['controller' => 'SelfService', 'action' => 'checkBarcodeType']);
             $routes->connect('/'.__('route_self_service') . '/sumup/start', ['controller' => 'SelfService', 'action' => 'sumUpStartCheckout']);
+            $routes->connect('/'.__('route_self_service') . '/sumup/free-amount-start', ['controller' => 'SelfService', 'action' => 'sumUpStartFreeAmount']);
             $routes->connect('/'.__('route_self_service') . '/sumup/status', ['controller' => 'SelfService', 'action' => 'sumUpCheckStatus']);
             $routes->connect('/'.__('route_self_service') . '/sumup/cancel', ['controller' => 'SelfService', 'action' => 'sumUpCancelCheckout']);
             $routes->connect('/'.__('route_self_service') . '/sumup/webhook', ['controller' => 'SelfService', 'action' => 'sumUpWebhook']);
             $routes->connect('/self-service/sumup/start', ['controller' => 'SelfService', 'action' => 'sumUpStartCheckout']);
+            $routes->connect('/self-service/sumup/free-amount-start', ['controller' => 'SelfService', 'action' => 'sumUpStartFreeAmount']);
             $routes->connect('/self-service/sumup/status', ['controller' => 'SelfService', 'action' => 'sumUpCheckStatus']);
             $routes->connect('/self-service/sumup/cancel', ['controller' => 'SelfService', 'action' => 'sumUpCancelCheckout']);
             $routes->connect('/self-service/sumup/webhook', ['controller' => 'SelfService', 'action' => 'sumUpWebhook']);

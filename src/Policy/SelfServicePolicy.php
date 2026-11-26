@@ -32,6 +32,10 @@ class SelfServicePolicy implements RequestPolicyInterface
             case 'checkBarcodeType':
             case 'sumUpWebhook':
                 return true;
+            case 'sumUpStartFreeAmount':
+            case 'sumUpCheckStatus':
+            case 'sumUpCancelCheckout':
+                return (bool) Configure::read('appDb.FCS_SELF_SERVICE_MODE_FOR_STOCK_PRODUCTS_ENABLED');
         }
 
         if (!(Configure::read('appDb.FCS_SELF_SERVICE_MODE_FOR_STOCK_PRODUCTS_ENABLED') && $identity !== null)) {

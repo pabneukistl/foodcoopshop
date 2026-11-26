@@ -84,6 +84,7 @@ class AssetsProvider
             'modal/modal-text.js',
             'modal/modal-self-service-confirm-dialog.js',
             'modal/modal-self-service-confirm-dialog-paymenttype-details.js',
+            'modal/modal-self-service-sumup-free-amount.js',
             'modal/modal-load-last-order-details.js',
             'mobile.js',
             'mathjs/lib/browser/math.js',

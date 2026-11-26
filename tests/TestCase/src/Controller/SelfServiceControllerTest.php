@@ -959,4 +959,60 @@ class SelfServiceControllerTest extends AppCakeTestCase
         $this->assertSessionNotHasKey('sumup_pending_payment');
     }
 
+    public function testSumUpFreeAmountFailsWhenDisabled(): void
+    {
+        Configure::write('app.sumUp.enabled', false);
+        $this->logout();
+
+        $this->ajaxPost('/self-service/sumup/free-amount-start', ['amount' => '12,50']);
+        $response = $this->getJsonDecodedResponse();
+        $this->assertEquals(0, $response->status);
+    }
+
+    public function testSumUpFreeAmountValidationRejectsInvalidMinAndMaxUnauthenticated(): void
+    {
+        Configure::write('app.sumUp', [
+            'enabled' => true,
+            'apiKey' => 'test_key',
+            'readerId' => 'rdr_test',
+            'merchantCode' => 'M123',
+        ]);
+        $this->logout();
+
+        $this->ajaxPost('/self-service/sumup/free-amount-start', ['amount' => 'abc']);
+        $response = $this->getJsonDecodedResponse();
+        $this->assertEquals(0, $response->status);
+        $this->assertStringContainsString('gültigen Betrag', $response->msg);
+
+        $this->ajaxPost('/self-service/sumup/free-amount-start', ['amount' => '0,50']);
+        $response = $this->getJsonDecodedResponse();
+        $this->assertEquals(0, $response->status);
+        $this->assertStringContainsString('1,00', $response->msg);
+
+        $this->ajaxPost('/self-service/sumup/free-amount-start', ['amount' => '501,00']);
+        $response = $this->getJsonDecodedResponse();
+        $this->assertEquals(0, $response->status);
+        $this->assertStringContainsString('500,00', $response->msg);
+    }
+
+    public function testSelfServiceLayoutShowsFreeAmountButtonOnlyWhenSumUpEnabled(): void
+    {
+        $this->loginAsSuperadmin();
+
+        Configure::write('app.sumUp.enabled', false);
+        $this->get($this->Slug->getSelfService());
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('btn-sumup-free-amount');
+
+        Configure::write('app.sumUp', [
+            'enabled' => true,
+            'apiKey' => 'test_key',
+            'readerId' => 'rdr_test',
+            'merchantCode' => 'M123',
+        ]);
+        $this->get($this->Slug->getSelfService());
+        $this->assertResponseOk();
+        $this->assertResponseContains('btn-sumup-free-amount');
+    }
+
 }

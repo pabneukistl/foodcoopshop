@@ -17,6 +17,9 @@ declare(strict_types=1);
 
 use Cake\Core\Configure;
 use App\Services\OrderCustomerService;
+use App\Services\SumUp\SumUpService;
+
+$sumUpFreeAmountEnabled = (new SumUpService())->isEnabled();
 
 echo $this->element('layout/header');
 ?>
@@ -44,6 +47,13 @@ echo $this->element('layout/header');
                         <?php } ?>
                 <?php } ?>
             </div>
+            <?php if ($sumUpFreeAmountEnabled) { ?>
+                <div class="center-wrapper">
+                    <a class="btn btn-outline-light btn-sm btn-sumup-free-amount" href="javascript:void(0);">
+                        <i class="fas fa-fw fa-credit-card"></i> <?php echo __('SumUp_free_amount_button'); ?>
+                    </a>
+                </div>
+            <?php } ?>
             <div class="right-wrapper">
                 <?php
                 if (!Configure::read('app.selfServiceEasyModeEnabled')){
@@ -65,6 +75,11 @@ echo $this->element('layout/header');
 </div>
 
 <?php
+    if ($sumUpFreeAmountEnabled && !OrderCustomerService::isOrderForDifferentCustomerMode()) {
+        $this->element('addScript', [
+            'script' => Configure::read('app.jsNamespace') . '.ModalSelfServiceSumUpFreeAmount.init();',
+        ]);
+    }
     echo $this->element('layout/footer', [
         'mobileInitFunction' => Configure::read('app.jsNamespace').".Mobile.initMenusSelfService();"
     ]);
