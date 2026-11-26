@@ -54,5 +54,7 @@ if ($paymentTypeAsString != '') {
 if (Configure::read('app.selfServiceEasyModeEnabled')) {
     echo $this->Form->hidden('self_service_payment_type', ['value' => '']);
     echo $this->Form->hidden('sumup_transaction_id', ['value' => '']);
+    $this->Form->unlockField('self_service_payment_type');
+    $this->Form->unlockField('sumup_transaction_id');
 }
 ?>

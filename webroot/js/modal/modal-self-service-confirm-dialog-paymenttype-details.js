@@ -104,7 +104,7 @@ foodcoopshop.ModalSelfServicePaymenttypeDetailsDialog = {
         $(modalSelector + ' .modal-title').text(this.currentPaymentName);
         $(modalSelector + ' .modal-body').html(
             '<div class="sumup-payment-box" style="text-align:center; padding: 10px 5px;">' +
-                '<p style="font-size: 1.15em; margin-bottom: 14px;">' + __('Amount_to_be_paid') + ' <b class="sumup-amount">' + amount + '</b></p>' +
+                '<p style="font-size: 1.15em; margin-bottom: 14px;">' + __('SumUp_amount_label') + ' <b class="sumup-amount">' + amount + '</b></p>' +
                 '<div class="sumup-status-message" style="font-size: 1.1em; padding: 12px; border-radius: 6px; background: rgba(0,0,0,0.04);">' +
                     '<i class="fas fa-circle-notch fa-spin" style="margin-right: 8px;"></i>' +
                     '<span class="sumup-status-text">' + __('SumUp_waiting_for_terminal') + '</span>' +

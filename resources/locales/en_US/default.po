@@ -5664,3 +5664,6 @@ msgstr "Try again"
 
 msgid "SumUp_choose_other_payment_type"
 msgstr "Choose other payment method"
+
+msgid "SumUp_amount_label"
+msgstr "Amount to pay:"

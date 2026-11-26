@@ -6026,3 +6026,6 @@ msgstr "Erneut versuchen"
 
 msgid "SumUp_choose_other_payment_type"
 msgstr "Andere Zahlungsart wählen"
+
+msgid "SumUp_amount_label"
+msgstr "Zu zahlender Betrag:"
