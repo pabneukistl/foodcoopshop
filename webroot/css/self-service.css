@@ -381,14 +381,46 @@ body.self_services #categoryid {
 #self-service-sumup-free-amount-dialog .sumup-free-amount-hint {
     font-size: 13px;
     color: #555;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+}
+#self-service-sumup-free-amount-dialog .sumup-calc-expression {
+    max-width: 320px;
+    min-height: 22px;
+    margin: 0 auto 4px auto;
+    padding: 2px 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    text-align: right;
+    word-break: break-word;
 }
 #self-service-sumup-free-amount-dialog .sumup-free-amount-input-group {
     display: flex;
     align-items: center;
     justify-content: center;
     max-width: 260px;
-    margin: 0 auto 10px auto;
+    margin: 0 auto 8px auto;
+}
+#self-service-sumup-free-amount-dialog .sumup-calc-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto 8px auto;
+}
+#self-service-sumup-free-amount-dialog .sumup-calc-toggle,
+#self-service-sumup-free-amount-dialog .sumup-calc-clear {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-color: #ced4da;
+    color: #444;
+    background-color: #f8f9fa;
+}
+#self-service-sumup-free-amount-dialog .sumup-calc-toggle:hover,
+#self-service-sumup-free-amount-dialog .sumup-calc-clear:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #111;
 }
 #self-service-sumup-free-amount-dialog .sumup-free-amount-input {
     font-size: 28px;
@@ -418,7 +450,7 @@ body.self_services #categoryid {
     border-radius: 6px;
     padding: 8px 12px;
     margin: 0 auto 12px auto;
-    max-width: 300px;
+    max-width: 320px;
     font-size: 14px;
 }
 #self-service-sumup-free-amount-dialog .sumup-free-amount-keypad {
@@ -426,7 +458,19 @@ body.self_services #categoryid {
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
     max-width: 260px;
-    margin: 12px auto 4px auto;
+    margin: 10px auto 4px auto;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad.with-calculator {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 320px;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key-calc {
+    display: none;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad.with-calculator .sumup-key-calc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 #self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key {
     height: 54px;
@@ -437,8 +481,23 @@ body.self_services #categoryid {
     background-color: #f8f9fa;
     border-radius: 6px;
 }
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key-op {
+    background-color: #e9ecef;
+    border-color: #bfc5cb;
+    color: #111;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key-equals {
+    background-color: #e2f0d9;
+    border-color: #82b366;
+    color: #1f4e1f;
+}
 #self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key:hover,
 #self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key:active {
     background-color: #dee2e6;
     border-color: #adb5bd;
+}
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key-equals:hover,
+#self-service-sumup-free-amount-dialog .sumup-free-amount-keypad .sumup-key-equals:active {
+    background-color: #cde4be;
+    border-color: #6b9b4f;
 }

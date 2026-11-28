@@ -5675,7 +5675,7 @@ msgid "SumUp_free_amount_modal_title"
 msgstr "Pay custom amount by card"
 
 msgid "SumUp_free_amount_hint"
-msgstr "Minimum amount €1.00 – direct payment at the card terminal (without creating an order)."
+msgstr "Minimum amount €1.00 – direct payment at the card terminal."
 
 msgid "SumUp_free_amount_pay_button"
 msgstr "Pay at terminal"
@@ -5700,3 +5700,12 @@ msgstr "Payment of {0} successful! Thank you!"
 
 msgid "SumUp_free_amount_close"
 msgstr "Close"
+
+msgid "SumUp_free_amount_calc_show"
+msgstr "Calculate sum"
+
+msgid "SumUp_free_amount_calc_hide"
+msgstr "Hide calculator"
+
+msgid "SumUp_free_amount_calc_clear"
+msgstr "Clear"
