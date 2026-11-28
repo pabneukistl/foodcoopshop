@@ -4300,10 +4300,10 @@ msgid "Tax rate"
 msgstr "Steuersatz"
 
 msgid "Tax_overview_cash"
-msgstr "Steuerübersicht bar"
+msgstr "Steuerübersicht Barzahlung (Bargeld)"
 
 msgid "Tax_overview_cashless"
-msgstr "Steuerübersicht unbar"
+msgstr "Steuerübersicht unbar (Überweisung / Guthaben)"
 
 msgid "Tax_overview_total"
 msgstr "Steuerübersicht Gesamt"
@@ -5983,7 +5983,16 @@ msgid "Card_payment"
 msgstr "Kartenzahlung"
 
 msgid "Tax_overview_card"
-msgstr "Steuersätze (Kartenzahlung)"
+msgstr "Steuerübersicht Kartenzahlung"
+
+msgid "Tax_overview_cash_and_card"
+msgstr "Steuerübersicht BAR (Barzahlung + Kartenzahlung)"
+
+msgid "Cash_payment"
+msgstr "Barzahlung"
+
+msgid "Cashless_payment_type"
+msgstr "Unbar (Überweisung / Guthaben)"
 
 msgid "Paid_by_card_on_{0}."
 msgstr "Am {0} per Kartenzahlung bezahlt."

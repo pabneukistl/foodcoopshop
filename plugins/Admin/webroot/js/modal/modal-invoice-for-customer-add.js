@@ -21,22 +21,26 @@ foodcoopshop.ModalInvoiceForCustomerAdd = {
     },
 
     getHtml : function(customerName, invoiceAmount, paymentIsCashless, isPaidCashForManualCustomerInvoiceGenerationDefaultEnabled) {
+        var defaultPaymentType = (!paymentIsCashless || isPaidCashForManualCustomerInvoiceGenerationDefaultEnabled) ? 1 : 0;
+
         var html = '<p>' + __('Really_generate_invoice_for_{0}?', '<b>' + customerName + '</b>') + '</p>';
         html += '<h3 style="text-align:center;font-weight:bold;font-size:35px" id="invoiceAmount">' + invoiceAmount + '</h3>';
-        html += '<div class="field-wrapper">';
+        html += '<div class="field-wrapper invoice-payment-type-wrapper">';
+        html += '<span class="invoice-payment-type-label">' + __('Payment_type') + ':</span>';
+        html += '<div class="invoice-payment-type-options">';
+        html += '<label class="radio-option"><input type="radio" name="dialogInvoiceForCustomerPaidInCash" value="1"' + (defaultPaymentType === 1 ? ' checked="checked"' : '') + ' /> ' + __('Cash_payment') + '</label>';
+        html += '<label class="radio-option"><input type="radio" name="dialogInvoiceForCustomerPaidInCash" value="2" /> ' + __('Card_payment') + '</label>';
+        if (paymentIsCashless) {
+            html += '<label class="radio-option"><input type="radio" name="dialogInvoiceForCustomerPaidInCash" value="0"' + (defaultPaymentType === 0 ? ' checked="checked"' : '') + ' /> ' + __('Cashless_payment_type') + '</label>';
+        }
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="field-wrapper invoice-given-amount-wrapper"' + (defaultPaymentType !== 1 ? ' style="display:none;"' : '') + '>';
         html += '<input type="number" id="givenAmount" style="text-align:left;margin-bottom:15px;" />';
         html += ' ' + __('Given_amount');
         html += '</div>';
-        html += '<div class="field-wrapper">';
+        html += '<div class="field-wrapper invoice-change-amount-wrapper"' + (defaultPaymentType !== 1 ? ' style="display:none;"' : '') + '>';
         html += '<h3 style="text-align:center;font-weight:bold;color:var(--not-ok-red);" id="changeAmount">&nbsp;</h3>';
-        html += '</div>';
-        html += '<div class="field-wrapper">';
-        if (paymentIsCashless) {
-            html += '<label class="checkbox">';
-            html += '<input type="checkbox" ' + (isPaidCashForManualCustomerInvoiceGenerationDefaultEnabled ? ' checked="checked"' : '') + ' name="dialogInvoiceForCustomerPaidInCash" id="dialogInvoiceForCustomerPaidInCash" />';
-            html += ' ' + __('Paid_in_cash') + '?';
-            html += '</label>';
-        }
         html += '</div>';
         return html;
     },
@@ -54,8 +58,12 @@ foodcoopshop.ModalInvoiceForCustomerAdd = {
     },
 
     getPaidInCashValue: function() {
-        var paidInCash = $('#dialogInvoiceForCustomerPaidInCash:checked').length > 0 ? 1 : 0;
-        return paidInCash;
+        var selected = $('input[name="dialogInvoiceForCustomerPaidInCash"]:checked');
+        if (selected.length === 0) {
+            return 0;
+        }
+        var value = parseInt(selected.val(), 10);
+        return isNaN(value) ? 0 : value;
     },
 
     getOpenHandler : function(button, modalSelector, paymentIsCashless, isPaidCashForManualCustomerInvoiceGenerationDefaultEnabled) {
@@ -86,6 +94,18 @@ foodcoopshop.ModalInvoiceForCustomerAdd = {
             document.location.href = '/admin/invoices/generate.pdf?customerId=' + customerId + '&paidInCash=' + paidInCash;
         });
 
+        $(modalSelector + ' input[name="dialogInvoiceForCustomerPaidInCash"]').on('change', function() {
+            var isCash = foodcoopshop.ModalInvoiceForCustomerAdd.getPaidInCashValue() === 1;
+            $(modalSelector + ' .invoice-given-amount-wrapper').toggle(isCash);
+            $(modalSelector + ' .invoice-change-amount-wrapper').toggle(isCash);
+            if (isCash) {
+                $(modalSelector + ' #givenAmount').focus();
+            } else {
+                $(modalSelector + ' #givenAmount').val('');
+                $(modalSelector + ' #changeAmount').html('&nbsp;');
+            }
+        });
+
         $(modalSelector + ' #givenAmount').keyup(function (e) {
             var changeAmount = parseFloat($(this).val()) - foodcoopshop.Helper.getCurrencyAsFloat($(modalSelector + ' #invoiceAmount').text());
             var newValue = '&nbsp;';
@@ -106,7 +126,9 @@ foodcoopshop.ModalInvoiceForCustomerAdd = {
 
         new bootstrap.Modal(document.getElementById(modalSelector.replace(/#/, ''))).show();
 
-        $(modalSelector + ' #givenAmount').focus();
+        if (foodcoopshop.ModalInvoiceForCustomerAdd.getPaidInCashValue() === 1) {
+            $(modalSelector + ' #givenAmount').focus();
+        }
     }
 
 };

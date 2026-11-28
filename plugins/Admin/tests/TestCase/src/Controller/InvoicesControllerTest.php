@@ -228,4 +228,57 @@ class InvoicesControllerTest extends AppCakeTestCase
 
     }
 
+    public function testGeneratePreviewAndCancelCardInvoice(): void
+    {
+        $this->changeConfiguration('FCS_SEND_INVOICES_TO_CUSTOMERS', 1);
+        $this->changeCustomer(Configure::read('test.superadminId'), 'invoices_per_email_enabled', 0);
+
+        $this->loginAsSuperadmin();
+        $customerId = Configure::read('test.superadminId');
+
+        // Preview with paidInCash=2 must show card payment text (not cash)
+        $this->get('/admin/invoices/preview.pdf?customerId=' . $customerId . '&paidInCash=2&currentDay=2018-02-02&outputType=html');
+        $this->assertResponseOk();
+        $this->assertResponseContains('per Kartenzahlung bezahlt');
+        $this->assertResponseNotContains('Bar bezahlt am');
+
+        // Generate card invoice
+        $this->generateInvoice($customerId, \App\Model\Entity\Invoice::PAID_IN_CASH_CARD);
+        $this->assertSessionHasKey('invoiceRouteForAutoPrint');
+
+        $invoicesTable = $this->getTableLocator()->get('Invoices');
+        $invoice = $invoicesTable->find('all', conditions: [
+            'Invoices.id_customer' => $customerId,
+        ])->first();
+
+        $this->assertEquals(\App\Model\Entity\Invoice::PAID_IN_CASH_CARD, $invoice->paid_in_cash);
+        $this->assertTrue($invoice->isPaidByCard());
+        $this->assertTrue($invoice->paid_in_cash_boolean);
+
+        $paymentsTable = $this->getTableLocator()->get('Payments');
+        $cardPayment = $paymentsTable->find('all',
+            conditions: [
+                'Payments.id_customer' => $customerId,
+                'Payments.approval_comment LIKE' => 'Kartenzahlung%',
+            ],
+            order: ['Payments.id' => 'DESC'],
+        )->first();
+        $this->assertNotEmpty($cardPayment);
+        $this->assertEquals(APP_ON, $cardPayment->status);
+
+        // Cancel card invoice: must preserve paid_in_cash=2 and cancel the offsetting payment
+        $this->ajaxPost('/admin/invoices/cancel/', [
+            'invoiceId' => $invoice->id,
+        ]);
+        $response = $this->getJsonDecodedResponse();
+        $this->assertEquals(1, $response->status);
+
+        $cancellationInvoice = $invoicesTable->get((int) $response->invoiceId);
+        $this->assertEquals(\App\Model\Entity\Invoice::PAID_IN_CASH_CARD, $cancellationInvoice->paid_in_cash);
+
+        $cancelledCardPayment = $paymentsTable->get($cardPayment->id);
+        $this->assertEquals(APP_DEL, $cancelledCardPayment->status);
+        $this->assertStringContainsString('Kartenzahlung', $cancelledCardPayment->approval_comment);
+    }
+
 }

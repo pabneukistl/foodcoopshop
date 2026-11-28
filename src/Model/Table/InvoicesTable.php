@@ -130,25 +130,27 @@ class InvoicesTable extends AppTable
             'cashless' => [],
             'cash' => [],
             'card' => [],
+            'cash_and_card' => [],
             'total' => [],
         ];
         $taxRatesSums = [
             'cashless' => $defaultArray,
             'cash' => $defaultArray,
             'card' => $defaultArray,
+            'cash_and_card' => $defaultArray,
             'total' => $defaultArray,
         ];
         foreach($invoices as $invoice) {
 
             if ($invoice->isPaidByCard()) {
-                $taxRateType = 'card';
+                $taxRateTypes = ['card', 'cash_and_card', 'total'];
             } elseif ($invoice->isPaidInCash()) {
-                $taxRateType = 'cash';
+                $taxRateTypes = ['cash', 'cash_and_card', 'total'];
             } else {
-                $taxRateType = 'cashless';
+                $taxRateTypes = ['cashless', 'total'];
             }
 
-            foreach([$taxRateType, 'total'] as $trt) {
+            foreach($taxRateTypes as $trt) {
 
                 foreach($invoice->invoice_taxes as $invoiceTax) {
 
@@ -156,22 +158,13 @@ class InvoicesTable extends AppTable
                     if (!isset($taxRates[$trt][$taxRate])) {
                         $taxRates[$trt][$taxRate] = $defaultArray;
                     }
-                    $taxRates[$trt][$taxRate]['sum_price_excl'] += $invoiceTax->total_price_tax_excl;
-                    $taxRates[$trt][$taxRate]['sum_tax'] += $invoiceTax->total_price_tax;
-                    $taxRates[$trt][$taxRate]['sum_price_incl'] += $invoiceTax->total_price_tax_incl;
+                    $taxRates[$trt][$taxRate]['sum_price_excl'] = round($taxRates[$trt][$taxRate]['sum_price_excl'] + $invoiceTax->total_price_tax_excl, 2);
+                    $taxRates[$trt][$taxRate]['sum_tax'] = round($taxRates[$trt][$taxRate]['sum_tax'] + $invoiceTax->total_price_tax, 2);
+                    $taxRates[$trt][$taxRate]['sum_price_incl'] = round($taxRates[$trt][$taxRate]['sum_price_incl'] + $invoiceTax->total_price_tax_incl, 2);
 
-                    $taxRatesSums[$trt]['sum_price_excl'] += $invoiceTax->total_price_tax_excl;
-                    $taxRatesSums[$trt]['sum_tax'] += $invoiceTax->total_price_tax;
-                    $taxRatesSums[$trt]['sum_price_incl'] += $invoiceTax->total_price_tax_incl;
-                }
-
-                if (isset($taxRate) && isset($taxRates[$trt][$taxRate])) {
-                    $taxRates[$trt][$taxRate]['sum_price_excl'] = round($taxRates[$trt][$taxRate]['sum_price_excl'], 2);
-                    $taxRates[$trt][$taxRate]['sum_tax'] = round($taxRates[$trt][$taxRate]['sum_tax'], 2);
-                    $taxRates[$trt][$taxRate]['sum_price_incl'] = round($taxRates[$trt][$taxRate]['sum_price_incl'], 2);
-                    $taxRatesSums[$trt]['sum_price_excl'] = round($taxRatesSums[$trt]['sum_price_excl'], 2);
-                    $taxRatesSums[$trt]['sum_tax'] = round($taxRatesSums[$trt]['sum_tax'], 2);
-                    $taxRatesSums[$trt]['sum_price_incl'] = round($taxRatesSums[$trt]['sum_price_incl'], 2);
+                    $taxRatesSums[$trt]['sum_price_excl'] = round($taxRatesSums[$trt]['sum_price_excl'] + $invoiceTax->total_price_tax_excl, 2);
+                    $taxRatesSums[$trt]['sum_tax'] = round($taxRatesSums[$trt]['sum_tax'] + $invoiceTax->total_price_tax, 2);
+                    $taxRatesSums[$trt]['sum_price_incl'] = round($taxRatesSums[$trt]['sum_price_incl'] + $invoiceTax->total_price_tax_incl, 2);
                 }
             }
         }
@@ -179,11 +172,13 @@ class InvoicesTable extends AppTable
         $taxRates['cashless'] = $this->clearZeroArray($taxRates['cashless']);
         $taxRates['cash'] = $this->clearZeroArray($taxRates['cash']);
         $taxRates['card'] = $this->clearZeroArray($taxRates['card']);
+        $taxRates['cash_and_card'] = $this->clearZeroArray($taxRates['cash_and_card']);
         $taxRates['total'] = $this->clearZeroArray($taxRates['total']);
 
         ksort($taxRates['cashless'], SORT_NUMERIC);
         ksort($taxRates['cash'], SORT_NUMERIC);
         ksort($taxRates['card'], SORT_NUMERIC);
+        ksort($taxRates['cash_and_card'], SORT_NUMERIC);
         ksort($taxRates['total'], SORT_NUMERIC);
 
         $result = [

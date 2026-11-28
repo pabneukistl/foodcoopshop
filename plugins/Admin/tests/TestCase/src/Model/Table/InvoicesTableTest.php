@@ -143,6 +143,34 @@ class InvoicesTableTest extends AppCakeTestCase
                         'sum_price_incl' => 1,
                     ],
                 ],
+                'card' => [],
+                'cash_and_card' => [
+                    '0' => [
+                        'sum_price_excl' => 4.54,
+                        'sum_tax' => 0,
+                        'sum_price_incl' => 4.54,
+                    ],
+                    '8,4' => [
+                        'sum_price_excl' => 13.65,
+                        'sum_tax' => 1.14,
+                        'sum_price_incl' => 14.79,
+                    ],
+                    '10' => [
+                        'sum_price_excl' => 1.65,
+                        'sum_tax' => 0.17,
+                        'sum_price_incl' => 1.82,
+                    ],
+                    '13' => [
+                        'sum_price_excl' => 0.55,
+                        'sum_tax' => 0.07,
+                        'sum_price_incl' => 0.62,
+                    ],
+                    '20' => [
+                        'sum_price_excl' => 0.84,
+                        'sum_tax' => 0.16,
+                        'sum_price_incl' => 1,
+                    ],
+                ],
                 'total' => [
                     '0' => [
                         'sum_price_excl' => 4.54,
@@ -173,6 +201,11 @@ class InvoicesTableTest extends AppCakeTestCase
             ],
             'taxRatesSums' => [
                 'cash' => [
+                    'sum_price_excl' => 21.23,
+                    'sum_tax' => 1.54,
+                    'sum_price_incl' => 22.77,
+                ],
+                'cash_and_card' => [
                     'sum_price_excl' => 21.23,
                     'sum_tax' => 1.54,
                     'sum_price_incl' => 22.77,
@@ -224,6 +257,8 @@ class InvoicesTableTest extends AppCakeTestCase
         $expected = [
             'taxRates' => [
                 'cash' => [],
+                'card' => [],
+                'cash_and_card' => [],
                 'cashless' => [
                     '10' => [
                         'sum_price_excl' => 34.95,
@@ -255,6 +290,43 @@ class InvoicesTableTest extends AppCakeTestCase
 
         $this->assertEquals($result, $expected);
 
+    }
+
+    public function testGetPreparedTaxRatesForSumTableSplitsCashCardBarCombinedAndCashless(): void
+    {
+        $invoicesTable = $this->getTableLocator()->get('Invoices');
+
+        $cashInvoice = $invoicesTable->newEntity([
+            'paid_in_cash' => \App\Model\Entity\Invoice::PAID_IN_CASH_CASH,
+            'invoice_taxes' => [
+                ['tax_rate' => 10, 'total_price_tax_excl' => 10.00, 'total_price_tax' => 1.00, 'total_price_tax_incl' => 11.00],
+            ],
+        ], ['associated' => ['InvoiceTaxes']]);
+
+        $cardInvoice = $invoicesTable->newEntity([
+            'paid_in_cash' => \App\Model\Entity\Invoice::PAID_IN_CASH_CARD,
+            'invoice_taxes' => [
+                ['tax_rate' => 10, 'total_price_tax_excl' => 20.00, 'total_price_tax' => 2.00, 'total_price_tax_incl' => 22.00],
+                ['tax_rate' => 20, 'total_price_tax_excl' => 5.00, 'total_price_tax' => 1.00, 'total_price_tax_incl' => 6.00],
+            ],
+        ], ['associated' => ['InvoiceTaxes']]);
+
+        $cashlessInvoice = $invoicesTable->newEntity([
+            'paid_in_cash' => \App\Model\Entity\Invoice::PAID_IN_CASH_CREDIT,
+            'invoice_taxes' => [
+                ['tax_rate' => 10, 'total_price_tax_excl' => 50.00, 'total_price_tax' => 5.00, 'total_price_tax_incl' => 55.00],
+            ],
+        ], ['associated' => ['InvoiceTaxes']]);
+
+        $result = $invoicesTable->getPreparedTaxRatesForSumTable([$cashInvoice, $cardInvoice, $cashlessInvoice]);
+
+        $this->assertEquals(11.00, $result['taxRatesSums']['cash']['sum_price_incl']);
+        $this->assertEquals(28.00, $result['taxRatesSums']['card']['sum_price_incl']);
+        $this->assertEquals(39.00, $result['taxRatesSums']['cash_and_card']['sum_price_incl']);
+        $this->assertEquals(33.00, $result['taxRates']['cash_and_card']['10']['sum_price_incl']);
+        $this->assertEquals(6.00, $result['taxRates']['cash_and_card']['20']['sum_price_incl']);
+        $this->assertEquals(55.00, $result['taxRatesSums']['cashless']['sum_price_incl']);
+        $this->assertEquals(94.00, $result['taxRatesSums']['total']['sum_price_incl']);
     }
 
 }

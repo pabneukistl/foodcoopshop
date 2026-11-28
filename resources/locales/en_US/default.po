@@ -4094,10 +4094,10 @@ msgid "Synchronize_products"
 msgstr "Synchronize products"
 
 msgid "Tax_overview_cash"
-msgstr "Tax overview cash"
+msgstr "Tax overview cash (physical cash)"
 
 msgid "Tax_overview_cashless"
-msgstr "Tax overview cashless"
+msgstr "Tax overview cashless (bank transfer / credit)"
 
 msgid "Tax_overview_total"
 msgstr "Tax overview total"
@@ -5621,7 +5621,16 @@ msgid "Card_payment"
 msgstr "Card payment"
 
 msgid "Tax_overview_card"
-msgstr "Tax overview (card payment)"
+msgstr "Tax overview card payment"
+
+msgid "Tax_overview_cash_and_card"
+msgstr "Tax overview CASH (cash + card payment)"
+
+msgid "Cash_payment"
+msgstr "Cash payment"
+
+msgid "Cashless_payment_type"
+msgstr "Cashless (bank transfer / credit)"
 
 msgid "Paid_by_card_on_{0}."
 msgstr "Paid by card on {0}."

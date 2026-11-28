@@ -92,6 +92,11 @@ if ($isOverviewMode && !empty($invoices)) {
         echo $this->element('invoice/taxSumTable', ['taxRates' => $taxRates['card'], 'taxRatesSums' => $taxRatesSums['card']]);
     }
 
+    if (!empty($taxRates['cash_and_card'])) {
+        echo '<h4>' . __('Tax_overview_cash_and_card') . '</h4>';
+        echo $this->element('invoice/taxSumTable', ['taxRates' => $taxRates['cash_and_card'], 'taxRatesSums' => $taxRatesSums['cash_and_card']]);
+    }
+
     if (!empty($taxRates['cashless'])) {
         echo '<h4>' . __('Tax_overview_cashless') . '</h4>';
         echo $this->element('invoice/taxSumTable', ['taxRates' => $taxRates['cashless'], 'taxRatesSums' => $taxRatesSums['cashless']]);
@@ -144,7 +149,7 @@ $this->Paginator->setPaginated($invoices);
         echo '<th class="right">' . __('Net') . '</th>';
         echo '<th class="right">' . __('VAT') . '</th>';
         echo '<th class="right">' . __('Gross') . '</th>';
-        echo '<th class="center">' . $this->Paginator->sort('Invoices.paid_in_cash', __('Paid_in_cash')) . '</th>';
+        echo '<th class="center">' . $this->Paginator->sort('Invoices.paid_in_cash', __('Payment_type')) . '</th>';
         echo '<th class="center">' . $this->Paginator->sort('Invoices.email_status', __('Email_sent')) . '</th>';
         if (Configure::read('appDb.FCS_HELLO_CASH_API_ENABLED')) {
             echo '<th class="center">' . __('Receipt') . '</th>';
@@ -185,9 +190,9 @@ $this->Paginator->setPaginated($invoices);
                 if ($invoice->isPaidByCard()) {
                     echo __('Card_payment');
                 } elseif ($invoice->isPaidInCash()) {
-                    echo __('Cash');
+                    echo __('Cash_payment');
                 } else {
-                    echo __('Credit');
+                    echo __('Cashless_payment_type');
                 }
             echo '</td>';
 

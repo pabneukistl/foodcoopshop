@@ -93,7 +93,10 @@ class InvoicesController extends AdminAppController
     {
 
         $customerId = (int) h($this->getRequest()->getQuery('customerId'));
-        $paidInCash = h($this->getRequest()->getQuery('paidInCash'));
+        $paidInCash = (int) $this->getRequest()->getQuery('paidInCash');
+        if (!in_array($paidInCash, [\App\Model\Entity\Invoice::PAID_IN_CASH_CREDIT, \App\Model\Entity\Invoice::PAID_IN_CASH_CASH, \App\Model\Entity\Invoice::PAID_IN_CASH_CARD], true)) {
+            $paidInCash = \App\Model\Entity\Invoice::PAID_IN_CASH_CREDIT;
+        }
 
         $customerTable = $this->getTableLocator()->get('Customers');
         $customer = $customerTable->find('all', conditions: [
@@ -134,6 +137,9 @@ class InvoicesController extends AdminAppController
 
             if (Configure::read('app.htmlHelper')->paymentIsCashless()) {
                 $paymentsTable = $this->getTableLocator()->get('Payments');
+                $paymentCommentLabel = $paidInCash === \App\Model\Entity\Invoice::PAID_IN_CASH_CARD
+                    ? __('Card_payment')
+                    : __('Paid_in_cash');
                 $paymentEntity = $paymentsTable->newEntity(
                     [
                         'status' => APP_ON,
@@ -144,7 +150,7 @@ class InvoicesController extends AdminAppController
                         'date_add' => DateTime::now(),
                         'date_changed' => DateTime::now(),
                         'amount' => abs($invoiceData->sumPriceIncl),
-                        'approval_comment' => __('Paid_in_cash') . ', ' . __('Invoice_number_abbreviation_admin') . ': ' . $invoiceNumber,
+                        'approval_comment' => $paymentCommentLabel . ', ' . __('Invoice_number_abbreviation_admin') . ': ' . $invoiceNumber,
                         'created_by' => $this->identity->getId(),
                     ]
                 );
@@ -191,7 +197,10 @@ class InvoicesController extends AdminAppController
     {
 
         $customerId = (int) h($this->getRequest()->getQuery('customerId'));
-        $paidInCash = h($this->getRequest()->getQuery('paidInCash'));
+        $paidInCash = (int) $this->getRequest()->getQuery('paidInCash');
+        if (!in_array($paidInCash, [\App\Model\Entity\Invoice::PAID_IN_CASH_CREDIT, \App\Model\Entity\Invoice::PAID_IN_CASH_CASH, \App\Model\Entity\Invoice::PAID_IN_CASH_CARD], true)) {
+            $paidInCash = \App\Model\Entity\Invoice::PAID_IN_CASH_CREDIT;
+        }
 
         $currentDay = Configure::read('app.timeHelper')->getCurrentDateForDatabase();
         if (!empty($this->getRequest()->getQuery('currentDay'))) {
@@ -231,7 +240,7 @@ class InvoicesController extends AdminAppController
             } else {
                 $pdfWriter = new InvoiceToCustomerWithTaxBasedOnInvoiceSumPdfWriterService();
             }
-            $pdfWriter->prepareAndSetData($invoiceData, (bool) $paidInCash, $newInvoiceNumber, $newInvoiceDate);
+            $pdfWriter->prepareAndSetData($invoiceData, $paidInCash, $newInvoiceNumber, $newInvoiceDate);
 
             if (!empty($this->request->getQuery('outputType')) && $this->request->getQuery('outputType') == 'html') {
                 return $this->response->withStringBody($pdfWriter->writeHtml());
@@ -344,7 +353,9 @@ class InvoicesController extends AdminAppController
 
             if (Configure::read('app.htmlHelper')->paymentIsCashless()) {
                 $paymentsTable = $this->getTableLocator()->get('Payments');
-                $approvalString = __('Paid_in_cash') . ', ' . __('Invoice_number_abbreviation_admin') . ': ' . $cancelledInvoiceNumber;
+                $paymentCommentLabel = $invoice->isPaidByCard() ? __('Card_payment') : __('Paid_in_cash');
+                $approvalString = $paymentCommentLabel . ', ' . __('Invoice_number_abbreviation_admin') . ': ' . $cancelledInvoiceNumber;
+                $legacyCashApprovalString = __('Paid_in_cash') . ', ' . __('Invoice_number_abbreviation_admin') . ': ' . $cancelledInvoiceNumber;
                 $paymentsTable->updateAll([
                     'status' => APP_DEL,
                     'date_changed' => DateTime::now(),
@@ -352,7 +363,7 @@ class InvoicesController extends AdminAppController
                 ], [
                     'type IN' => [Payment::TYPE_PRODUCT, Payment::TYPE_PAYBACK],
                     'id_customer' => $invoice->customer->id_customer,
-                    'approval_comment' => $approvalString,
+                    'approval_comment IN' => array_unique([$approvalString, $legacyCashApprovalString]),
                 ]);
             }
 

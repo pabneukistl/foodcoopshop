@@ -318,6 +318,35 @@ body.iframe_self_service_order {
 .modal .checkbox input[type="checkbox"] {
     float: right;
 }
+#modal-invoice-for-customer-add .invoice-payment-type-wrapper {
+    margin-bottom: 12px;
+}
+#modal-invoice-for-customer-add .invoice-payment-type-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+#modal-invoice-for-customer-add .invoice-payment-type-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+#modal-invoice-for-customer-add .invoice-payment-type-options label.radio-option {
+    float: none;
+    width: auto;
+    clear: none;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: normal;
+}
+#modal-invoice-for-customer-add .invoice-payment-type-options input[type="radio"] {
+    float: none;
+    width: auto;
+    margin: 0;
+}
 #product-categories-edit-form input[type="checkbox"],
 #order-detail-product-quantity-edit-form input[type="checkbox"],
 #order-detail-pickup-day-edit input[type="checkbox"],
